@@ -192,43 +192,101 @@ export function escapeCurrencyDollars(text: string): string {
 // Old simple preprocessLaTeX has been replaced by the comprehensive version below
 // The new preprocessLaTeX provides the same default behavior with optional advanced featuresgit
 
-/**
- * Extracts the LaTeX formula after the last $$ delimiter if there's an odd number of $$ delimiters.
- *
- * @param text The input string containing LaTeX formulas
- * @returns The content after the last $$ if there's an odd number of $$, otherwise an empty string
- */
-const extractIncompleteFormula = (text: string) => {
-  // Count the number of $$ delimiters
-  const dollarsCount = (text.match(/\$\$/g) || []).length;
+const findUnescaped = (text: string, from: number, token: string): number => {
+  let index = from;
+  while (index < text.length) {
+    if (text[index] === '\\') {
+      index += 2;
+      continue;
+    }
+    if (text.startsWith(token, index)) return index;
+    index += 1;
+  }
+  return -1;
+};
 
-  // If odd number of $$ delimiters, extract content after the last $$
-  if (dollarsCount % 2 === 1) {
-    const match = text.match(/\$\$([\s\S]*)$/);
-    return match ? match[1] : '';
+interface IncompleteFormula {
+  displayMode: boolean;
+  formula: string;
+}
+
+/**
+ * Walks the text delimiter by delimiter and returns the trailing math fragment
+ * that is still waiting for its closing delimiter, or null when every formula is
+ * closed. Code spans and fences are skipped, so a literal `$$` inside backticks
+ * cannot flip the parity of the real delimiters.
+ */
+const findIncompleteFormula = (text: string): IncompleteFormula | null => {
+  let index = 0;
+
+  while (index < text.length) {
+    const char = text[index];
+
+    if (char === '`') {
+      let runLength = 0;
+      while (text[index + runLength] === '`') runLength += 1;
+      const fence = '`'.repeat(runLength);
+      const close = text.indexOf(fence, index + runLength);
+      // An unterminated fence swallows the rest of the stream as code, so no
+      // math can be pending after it.
+      if (close === -1) return null;
+      index = close + runLength;
+      continue;
+    }
+
+    if (char === '\\') {
+      const next = text[index + 1];
+      if (next === '[' || next === '(') {
+        const displayMode = next === '[';
+        const closer = displayMode ? '\\]' : '\\)';
+        const close = text.indexOf(closer, index + 2);
+        if (close === -1) return { displayMode, formula: text.slice(index + 2) };
+        index = close + 2;
+        continue;
+      }
+      index += 2;
+      continue;
+    }
+
+    if (char === '$') {
+      const displayMode = text[index + 1] === '$';
+      const token = displayMode ? '$$' : '$';
+      const contentStart = index + token.length;
+      const close = findUnescaped(text, contentStart, token);
+      const pending = text.slice(contentStart, close === -1 ? undefined : close);
+      // A `$` that never closes before a blank line is prose (a stray currency
+      // sign), not a formula — otherwise one of them would freeze the guard for
+      // the rest of the stream.
+      if (!displayMode && /\n[ \t]*\n/.test(pending)) {
+        index = contentStart;
+        continue;
+      }
+      if (close === -1) return { displayMode, formula: pending };
+      index = close + token.length;
+      continue;
+    }
+
+    index += 1;
   }
 
-  // If even number of $$ delimiters, return empty string
-  return '';
+  return null;
 };
 
 /**
- * Checks if the last LaTeX formula in the text is renderable.
- * Only validates the formula after the last $$ if there's an odd number of $$.
+ * Checks whether the trailing, still-unclosed LaTeX formula can already be
+ * rendered by KaTeX. Text without a pending formula is always renderable.
  *
  * @param text The input string containing LaTeX formulas
- * @returns True if the last formula is renderable or if there's no incomplete formula
+ * @returns True if the pending formula renders or if there is no pending formula
  */
 export const isLastFormulaRenderable = (text: string) => {
-  const formula = extractIncompleteFormula(text);
+  const pending = findIncompleteFormula(text);
 
-  // If no incomplete formula, return true
-  if (!formula) return true;
+  if (!pending || !pending.formula.trim()) return true;
 
-  // Try to render the last formula
   try {
-    renderToString(formula, {
-      displayMode: true,
+    renderToString(pending.formula, {
+      displayMode: pending.displayMode,
       throwOnError: true,
     });
     return true;

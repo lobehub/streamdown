@@ -252,6 +252,30 @@ describe('isLastFormulaRenderable', () => {
     // Note: This test assumes that "x^{" is invalid LaTeX which the renderer will reject
     expect(isLastFormulaRenderable('Text $$formula1$$ $$x^{')).toBe(false);
   });
+
+  test('ignores dollar delimiters inside code spans and fences', () => {
+    const text = [
+      'The trailing `$$` block is still incomplete.',
+      '',
+      '$$',
+      '\\frac{\\partial \\mathbf{E}}{\\partial',
+    ].join('\n');
+
+    expect(isLastFormulaRenderable(text)).toBe(false);
+    expect(isLastFormulaRenderable('`$$` and `$x$` only')).toBe(true);
+    expect(isLastFormulaRenderable('```\n$$x^{\n')).toBe(true);
+  });
+
+  test('guards incomplete inline and bracket math', () => {
+    expect(isLastFormulaRenderable('inline $x^{')).toBe(false);
+    expect(isLastFormulaRenderable('inline $x^2$ done')).toBe(true);
+    expect(isLastFormulaRenderable('display \\[x^{')).toBe(false);
+    expect(isLastFormulaRenderable('display \\[x^2\\] done')).toBe(true);
+  });
+
+  test('treats a stray dollar sign in prose as text', () => {
+    expect(isLastFormulaRenderable('It costs $5 today.\n\nNext paragraph.')).toBe(true);
+  });
 });
 
 describe('escapeTextUnderscores', () => {
