@@ -1,0 +1,17 @@
+# semantic-release resolves its plugins by name from the process cwd, so the
+# whole `@semantic-release/*` chain has to be hoisted out of the pnpm store.
+publicHoistPattern:
+  - '*changelog*'
+  - '*commitlint*'
+  - '*eslint*'
+  - '*prettier*'
+  - '*semantic-release*'
+
+packages:
+  - site
+
+allowBuilds:
+  unrs-resolver: true
+
+patchedDependencies:
+  conventional-changelog-gitmoji-config@1.5.2: patches/conventional-changelog-gitmoji-config@1.5.2.patch

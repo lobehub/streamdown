@@ -1,0 +1,23 @@
+# dependencies
+node_modules
+
+# build output
+es
+dist
+site/dist
+
+# ci
+coverage
+.eslintcache
+.wrangler
+
+# husky
+.husky/_
+
+# misc
+.DS_Store
+.idea
+.vscode
+.history
+*.log
+.env.local
