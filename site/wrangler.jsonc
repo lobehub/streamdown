@@ -1,6 +1,7 @@
 {
   "$schema": "https://unpkg.com/wrangler@4.127.0/config-schema.json",
   "name": "streamdown",
+  "account_id": "d35842305b91be4b48e06ff9a9ad83f5",
   "compatibility_date": "2026-09-08",
   "pages_build_output_dir": "./dist"
 }
