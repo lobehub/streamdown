@@ -1,6 +1,18 @@
 import { semanticRelease } from '@lobehub/lint';
 
-// Single-package repo: no scope filtering, no monorepo plugin. `tagFormat`
-// stays at the semantic-release default (`v${version}`), continuing from the
-// `v1.2.0` tag that carries over the version already on npm.
-export default semanticRelease;
+const GITMOJI_PRESET = './changelog-preset.mjs';
+
+const plugins = semanticRelease.plugins.map((plugin) => {
+  if (!Array.isArray(plugin)) return plugin;
+  const [name, options] = plugin;
+  if (
+    options?.config === 'conventional-changelog-gitmoji-config' &&
+    (name === '@semantic-release/commit-analyzer' ||
+      name === '@semantic-release/release-notes-generator')
+  ) {
+    return [name, { ...options, config: GITMOJI_PRESET }];
+  }
+  return plugin;
+});
+
+export default { ...semanticRelease, plugins };
