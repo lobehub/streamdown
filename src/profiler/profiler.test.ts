@@ -1,6 +1,9 @@
+import { createElement, type ReactNode } from 'react';
+import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createStreamdownProfiler } from './profiler';
+import { StreamdownProfilerProvider, useStreamdownProfiler } from './StreamdownProfilerProvider';
 
 describe('createStreamdownProfiler', () => {
   it('aggregates render and animation samples into a snapshot', () => {
@@ -164,5 +167,18 @@ describe('createStreamdownProfiler', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('useStreamdownProfiler', () => {
+  it('reads the profiler through useContext so React 18 can render Streamdown', () => {
+    const profiler = createStreamdownProfiler({ label: 'react-18', notifyIntervalMs: 0 });
+    const { result } = renderHook(() => useStreamdownProfiler(), {
+      wrapper: ({ children }: { children: ReactNode }) =>
+        createElement(StreamdownProfilerProvider, { profiler }, children),
+    });
+
+    expect(result.current).toBe(profiler);
+    expect(result.current?.getSnapshot().label).toBe('react-18');
   });
 });
