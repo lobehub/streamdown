@@ -104,6 +104,8 @@ const Message = ({ content }: { content: string }) => (
 
 `content` may be a partial document — an unterminated code fence, a half-written table, or a formula missing its closing `$`. The engine re-lexes only the open tail block, so the cost of a commit grows with the tail, not with the message.
 
+A fenced code block that is still arriving renders its `<pre>` with `data-streaming`. Custom `pre` components can read `props['data-streaming']` to hold off syntax highlighting or diagram rendering until the fence closes, instead of redoing that work on every reveal commit.
+
 Style the output yourself. The rendered tree is plain markdown HTML plus fade animation classes (`STREAMDOWN_ANIMATED_CLASS`, `STREAM_FADE_DURATION`).
 
 <div align="right">

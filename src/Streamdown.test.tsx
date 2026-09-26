@@ -1,4 +1,5 @@
 import { act, cleanup, render, renderHook } from '@testing-library/react';
+import { type ComponentProps } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Streamdown } from './Streamdown';
@@ -87,5 +88,44 @@ describe('buffered complete blocks', () => {
     expect(container.querySelector('p')).toBe(first);
     expect(first?.classList.contains('stream-block')).toBe(false);
     expect(container.querySelector('p.stream-block')?.textContent).toBe('New complete paragraph.');
+  });
+});
+
+describe('streaming code fence flag', () => {
+  const streamingOf = (content: string) => {
+    const { container } = render(<Streamdown content={content} />);
+    return [...container.querySelectorAll('pre')].map((pre) => pre.dataset.streaming ?? null);
+  };
+
+  it.each([
+    ['```ts\nconst a = 1', ['true']],
+    ['```', ['true']],
+    ['intro\n\n```ts\nconst a = 1\n```\n\n```js\nlet b', [null, 'true']],
+    ['- item\n\n  ```js\n  x = 1', ['true']],
+    ['~~~py\nprint(1)', ['true']],
+    ['> ```js\n> x = 1', ['true']],
+  ])('marks the unclosed trailing fence: %j', (content, expected) => {
+    expect(streamingOf(content)).toEqual(expected);
+  });
+
+  it.each([
+    '```ts\nconst a = 1\n```',
+    '````md\n```\nnested\n````',
+    '    indented code',
+    '```ts\nconst a = 1\n```\n\ntrailing prose',
+    '> ```js\n> x = 1\n> ```',
+    '- a\n  ```js\n  x\n- b',
+  ])('leaves closed or unfenced code unmarked: %j', (content) => {
+    expect(streamingOf(content).every((value) => value === null)).toBe(true);
+  });
+
+  it('passes the flag to a custom pre component', () => {
+    const seen: unknown[] = [];
+    const Pre = (props: ComponentProps<'pre'>) => {
+      seen.push((props as Record<string, unknown>)['data-streaming']);
+      return null;
+    };
+    render(<Streamdown components={{ pre: Pre }} content={'```ts\nconst a'} />);
+    expect(seen.at(-1)).toBe(true);
   });
 });
