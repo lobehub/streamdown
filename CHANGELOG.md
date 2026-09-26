@@ -2,6 +2,18 @@
 
 # Changelog
 
+# [1.4.0](https://github.com/lobehub/streamdown/compare/v1.3.1...v1.4.0) (2026-09-26)
+
+
+### ✨ Features
+
+* Add remend option to Streamdown, closes [#5](https://github.com/lobehub/streamdown/issues/5) ([950be99](https://github.com/lobehub/streamdown/commit/950be99))
+
+
+### 🔧 Continuous Integration
+
+* Publish GitHub releases as lobe-tsukumo App, closes [#3](https://github.com/lobehub/streamdown/issues/3) ([0f9bd45](https://github.com/lobehub/streamdown/commit/0f9bd45))
+
 ## [1.3.1](https://github.com/lobehub/streamdown/compare/v1.3.0...v1.3.1) (2026-09-10)
 
 
