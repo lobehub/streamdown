@@ -16,6 +16,7 @@ import type { Pluggable, PluggableList } from 'unified';
 
 import { createBlockLexer } from './blockLexer';
 import { CachedMarkdown } from './CachedMarkdown';
+import { rehypeStreamingFence } from './fenceState';
 import { getNow, isDeepEqual, useStableValue } from './internal';
 import { isLastFormulaRenderable } from './latex';
 import { useStreamdownProfiler } from './profiler';
@@ -231,7 +232,11 @@ const StreamdownBlocks = memo<StreamdownBlocksProps>(
   ({ content: smoothedContent, granularity, markdownOptions, tailUnitsRef }) => {
     const profiler = useStreamdownProfiler();
     const { components: baseComponents, ...rest } = markdownOptions;
-    const baseRehypePlugins = useStablePlugins(markdownOptions.rehypePlugins ?? EMPTY_PLUGINS);
+    const userRehypePlugins = useStablePlugins(markdownOptions.rehypePlugins ?? EMPTY_PLUGINS);
+    const baseRehypePlugins = useMemo<PluggableList>(
+      () => [rehypeStreamingFence, ...userRehypePlugins],
+      [userRehypePlugins],
+    );
     const remarkPlugins = useStablePlugins(markdownOptions.remarkPlugins ?? EMPTY_PLUGINS);
     const generatedId = useId();
     const [lexBlocks] = useState(createBlockLexer);

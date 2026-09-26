@@ -11,22 +11,6 @@ import {
 } from 'react';
 import { codeToHtml } from 'shiki';
 
-/**
- * Highlighting and diagram rendering are far more expensive than a reveal commit,
- * so neither runs while the fence is still arriving — the block stays plain text
- * until its source has held still, then upgrades in place.
- */
-const useSettled = (value: string, delay = 180) => {
-  const [settled, setSettled] = useState('');
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-
-  return settled;
-};
-
 const MERMAID_OPTIONS: RenderOptions = {
   accent: 'var(--fg)',
   bg: 'var(--card)',
@@ -38,16 +22,24 @@ const MERMAID_OPTIONS: RenderOptions = {
   transparent: true,
 };
 
-const Mermaid = memo<{ code: string }>(({ code }) => {
-  const settled = useSettled(code);
+// Highlighting and diagram rendering are far more expensive than a reveal
+// commit, so neither runs while Streamdown flags the fence as still
+// streaming — the block stays plain text until it closes, then upgrades in
+// place.
+interface CodeProps {
+  code: string;
+  streaming: boolean;
+}
+
+const Mermaid = memo<CodeProps>(({ code, streaming }) => {
   const svg = useMemo(() => {
-    if (!settled) return '';
+    if (streaming) return '';
     try {
-      return renderMermaidSVG(settled, MERMAID_OPTIONS);
+      return renderMermaidSVG(code, MERMAID_OPTIONS);
     } catch {
       return '';
     }
-  }, [settled]);
+  }, [code, streaming]);
 
   if (!svg) {
     return (
@@ -60,27 +52,26 @@ const Mermaid = memo<{ code: string }>(({ code }) => {
   return <div className="mermaid" dangerouslySetInnerHTML={{ __html: svg }} />;
 });
 
-const Highlighted = memo<{ code: string; language: string }>(({ code, language }) => {
-  const settled = useSettled(code);
-  const [html, setHtml] = useState('');
+const Highlighted = memo<CodeProps & { language: string }>(({ code, language, streaming }) => {
+  const [highlighted, setHighlighted] = useState({ code: '', html: '' });
 
   useEffect(() => {
-    if (!settled) return;
+    if (streaming) return;
     let cancelled = false;
 
-    codeToHtml(settled, {
+    codeToHtml(code, {
       lang: language,
       themes: { dark: 'github-dark', light: 'github-light' },
     })
-      .then((result) => !cancelled && setHtml(result))
-      .catch(() => !cancelled && setHtml(''));
+      .then((html) => !cancelled && setHighlighted({ code, html }))
+      .catch(() => !cancelled && setHighlighted({ code: '', html: '' }));
 
     return () => {
       cancelled = true;
     };
-  }, [settled, language]);
+  }, [code, language, streaming]);
 
-  if (!html) {
+  if (streaming || highlighted.code !== code) {
     return (
       <pre>
         <code>{code}</code>
@@ -88,7 +79,7 @@ const Highlighted = memo<{ code: string; language: string }>(({ code, language }
     );
   }
 
-  return <div className="highlighted" dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className="highlighted" dangerouslySetInnerHTML={{ __html: highlighted.html }} />;
 });
 
 const toText = (node: unknown): string => {
@@ -99,6 +90,7 @@ const toText = (node: unknown): string => {
 };
 
 export const Pre = ({ children, ...rest }: ComponentPropsWithoutRef<'pre'>) => {
+  const streaming = Boolean((rest as Record<string, unknown>)['data-streaming']);
   const child = Children.toArray(children).find((node) =>
     isValidElement<{ className?: string }>(node),
   ) as ReactElement<{ className?: string }> | undefined;
@@ -107,9 +99,9 @@ export const Pre = ({ children, ...rest }: ComponentPropsWithoutRef<'pre'>) => {
   if (!language) return <pre {...rest}>{children}</pre>;
 
   const code = toText(child).replace(/\n$/, '');
-  if (language === 'mermaid') return <Mermaid code={code} />;
+  if (language === 'mermaid') return <Mermaid code={code} streaming={streaming} />;
 
-  return <Highlighted code={code} language={language} />;
+  return <Highlighted code={code} language={language} streaming={streaming} />;
 };
 
 export const markdownComponents = { pre: Pre };
