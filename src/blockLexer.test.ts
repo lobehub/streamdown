@@ -54,6 +54,12 @@ describe('createBlockLexer', () => {
     expect(lex(`${head}$$y`).processed).toBe(`${head}$$y$$`);
   });
 
+  it('passes remend options through, so a comparison is not mended as an HTML tag', () => {
+    const source = 'Inline notation p<q stays.\n\n## Later\n\nThe rest.';
+    expect(createBlockLexer()(source).processed).not.toContain('The rest.');
+    expect(createBlockLexer({ htmlTags: false })(source).processed).toBe(source);
+  });
+
   it('re-lexes from scratch when content is not an append', () => {
     const lex = createBlockLexer();
     lex('para one\n\npara two\n\n- item');

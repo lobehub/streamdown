@@ -1,5 +1,5 @@
 import { marked, type Token } from 'marked';
-import remend from 'remend';
+import remend, { type RemendOptions } from 'remend';
 
 import { type BlockInfo } from './useStreamQueue';
 
@@ -31,7 +31,7 @@ const toBlocks = (tokens: Token[], startOffset: number): BlockInfo[] => {
   });
 };
 
-export const createBlockLexer = () => {
+export const createBlockLexer = (remendOptions?: RemendOptions) => {
   let frozenRaw = '';
   let frozenBlocks: BlockInfo[] = [];
 
@@ -71,7 +71,7 @@ export const createBlockLexer = () => {
     }
 
     const rawTail = content.slice(frozenRaw.length);
-    const processedTail = remend(rawTail);
+    const processedTail = remend(rawTail, remendOptions);
     const tailTokens = marked.lexer(processedTail);
     const tailBlocks = toBlocks(tailTokens, frozenRaw.length);
     const result = {

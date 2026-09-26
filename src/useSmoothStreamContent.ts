@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type RemendOptions } from 'remend';
 
 import { createBlockLexer } from './blockLexer';
 import { findOpenFenceLanguage } from './fenceState';
-import { getNow } from './internal';
+import { getNow, useStableValue } from './internal';
 import { useStreamdownProfiler } from './profiler';
 import { type StreamSmoothingPreset } from './types';
 
@@ -120,17 +121,20 @@ export const countChars = (text: string): number => {
 interface UseSmoothStreamContentOptions {
   enabled?: boolean;
   preset?: StreamSmoothingPreset;
+  /** Options for the remend pass that completes the open tail block. */
+  remend?: RemendOptions;
   tailUnitsRef?: { current: number };
 }
 
 export const useSmoothStreamContent = (
   content: string,
-  { enabled = true, preset = 'balanced', tailUnitsRef }: UseSmoothStreamContentOptions = {},
+  { enabled = true, preset = 'balanced', remend, tailUnitsRef }: UseSmoothStreamContentOptions = {},
 ): string => {
   const config = PRESET_CONFIG[preset];
   const profiler = useStreamdownProfiler();
   const [displayedContent, setDisplayedContent] = useState(content);
-  const [lexBufferedContent] = useState(createBlockLexer);
+  const remendOptions = useStableValue(remend);
+  const lexBufferedContent = useMemo(() => createBlockLexer(remendOptions), [remendOptions]);
   const completePrefixRef = useRef({ content: '', count: 0 });
 
   const displayedContentRef = useRef(content);

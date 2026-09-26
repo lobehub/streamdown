@@ -121,6 +121,7 @@ Style the output yourself. The rendered tree is plain markdown HTML plus fade an
 | `granularity`                                      | `'char' \| 'word'`                     | `'char'`       | Fade animation unit                                          |
 | `latexGuard`                                       | `boolean`                              | `false`        | Hold the last frame while a trailing formula is incomplete   |
 | `preprocess`                                       | `(text: string) => string`             | —              | Transform content before rendering                           |
+| `remend`                                           | `RemendOptions`                        | —              | Options for the remend pass that completes the open tail block, e.g. `{ htmlTags: false }` |
 | `components` / `remarkPlugins` / `rehypePlugins`   | —                                      | —              | Passed through to `react-markdown`                           |
 
 <div align="right">
