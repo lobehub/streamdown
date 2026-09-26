@@ -9,9 +9,9 @@ import {
   useId,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { type Options } from 'react-markdown';
+import { type RemendOptions } from 'remend';
 import type { Pluggable, PluggableList } from 'unified';
 
 import { createBlockLexer } from './blockLexer';
@@ -224,17 +224,18 @@ interface StreamdownBlocksProps {
   content: string;
   granularity: StreamAnimationGranularity;
   markdownOptions: Omit<Options, 'children'>;
+  remendOptions?: RemendOptions;
   tailUnitsRef: { current: number };
 }
 
 const StreamdownBlocks = memo<StreamdownBlocksProps>(
-  ({ content: smoothedContent, granularity, markdownOptions, tailUnitsRef }) => {
+  ({ content: smoothedContent, granularity, markdownOptions, remendOptions, tailUnitsRef }) => {
     const profiler = useStreamdownProfiler();
     const { components: baseComponents, ...rest } = markdownOptions;
     const baseRehypePlugins = useStablePlugins(markdownOptions.rehypePlugins ?? EMPTY_PLUGINS);
     const remarkPlugins = useStablePlugins(markdownOptions.remarkPlugins ?? EMPTY_PLUGINS);
     const generatedId = useId();
-    const [lexBlocks] = useState(createBlockLexer);
+    const lexBlocks = useMemo(() => createBlockLexer(remendOptions), [remendOptions]);
 
     const components = useMemo<Options['components']>(
       () => ({ ...baseComponents, [STREAM_TAIL_TAG]: StreamTail }) as Options['components'],
@@ -444,6 +445,11 @@ export interface StreamdownProps extends Omit<Options, 'children'> {
    */
   latexGuard?: boolean;
   preprocess?: (text: string) => string;
+  /**
+   * Options for the remend pass that completes the open tail block, e.g.
+   * `{ htmlTags: false }` when `<` is prose or math rather than HTML.
+   */
+  remend?: RemendOptions;
   smoothing?: StreamSmoothingPreset;
 }
 
@@ -452,15 +458,17 @@ export interface StreamdownProps extends Omit<Options, 'children'> {
 // a memoized child keyed on the smoother's output — so the expensive block
 // pipeline runs per reveal commit, not per chunk AND per commit.
 export const Streamdown = memo<StreamdownProps>(
-  ({ content, granularity = 'char', latexGuard = false, preprocess, smoothing, ...rest }) => {
+  ({ content, granularity = 'char', latexGuard = false, preprocess, remend, smoothing, ...rest }) => {
     const preprocessed = useMemo(
       () => (preprocess ? preprocess(content) : content),
       [content, preprocess],
     );
     const guardedContent = useLatexGuard(preprocessed, latexGuard);
     const tailUnitsRef = useRef(0);
+    const remendOptions = useStableValue(remend);
     const smoothedContent = useSmoothStreamContent(guardedContent, {
       preset: smoothing ?? 'balanced',
+      remend: remendOptions,
       tailUnitsRef,
     });
     const markdownOptions = useStableValue(rest);
@@ -470,6 +478,7 @@ export const Streamdown = memo<StreamdownProps>(
         content={smoothedContent}
         granularity={granularity}
         markdownOptions={markdownOptions}
+        remendOptions={remendOptions}
         tailUnitsRef={tailUnitsRef}
       />
     );

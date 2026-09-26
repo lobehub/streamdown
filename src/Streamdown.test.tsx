@@ -89,3 +89,11 @@ describe('buffered complete blocks', () => {
     expect(container.querySelector('p.stream-block')?.textContent).toBe('New complete paragraph.');
   });
 });
+
+describe('remend options', () => {
+  it('keeps the text after a comparison when HTML-tag completion is off', () => {
+    const content = 'Inline notation p<q stays.\n\n## Later\n\nThe rest.';
+    const { container } = render(<Streamdown content={content} remend={{ htmlTags: false }} />);
+    expect(container.textContent).toContain('The rest.');
+  });
+});
