@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 export const STREAM_FADE_DURATION = 180;
 
 export const STREAMDOWN_ANIMATED_CLASS = 'streamdown-animated';
@@ -33,8 +35,10 @@ const css = `
 
 // React 19 hoists and dedupes <style href precedence> into <head>, which
 // keeps this SSR-safe without any manual DOM injection.
-export const StreamdownStyles = () => (
+export const StreamdownStyles = memo(() => (
   <style href="lobehub-streamdown" precedence="default">
     {css}
   </style>
-);
+));
+
+StreamdownStyles.displayName = 'StreamdownStyles';

@@ -1,7 +1,13 @@
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { getNow } from './internal';
 import { createStreamTailNode, StreamTail } from './StreamTail';
+
+vi.mock('./internal', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./internal')>();
+  return { ...actual, getNow: vi.fn(actual.getNow) };
+});
 
 const delayOf = (el: Element) => Number.parseFloat((el as HTMLElement).style.animationDelay);
 
@@ -40,5 +46,28 @@ describe('StreamTail', () => {
     const { container } = render(<StreamTail node={node} />);
     const span = container.querySelector('.stream-char-revealed') as HTMLElement;
     expect(span.style.animationDelay).toBe('');
+  });
+
+  it('skips rendering when a fresh node carries the same tail data', () => {
+    const data = () => ({
+      items: ['x', { birth: 10, key: 4, value: 'y' }],
+      text: 'ab',
+    });
+    const { container, rerender } = render(<StreamTail node={createStreamTailNode(data())} />);
+    const renders = vi.mocked(getNow).mock.calls.length;
+
+    rerender(<StreamTail node={createStreamTailNode(data())} />);
+    expect(vi.mocked(getNow).mock.calls.length).toBe(renders);
+
+    rerender(
+      <StreamTail
+        node={createStreamTailNode({
+          ...data(),
+          items: [...data().items, { birth: 20, key: 5, value: 'z' }],
+        })}
+      />,
+    );
+    expect(vi.mocked(getNow).mock.calls.length).toBe(renders + 1);
+    expect(container.textContent).toBe('abxyz');
   });
 });

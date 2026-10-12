@@ -1,7 +1,7 @@
 import { type Element } from 'hast';
-import { type CSSProperties, useRef } from 'react';
+import { type CSSProperties, memo, useRef } from 'react';
 
-import { getNow } from './internal';
+import { getNow, isDeepEqual } from './internal';
 import { STREAM_FADE_DURATION } from './styles';
 
 // hast-util-to-jsx-runtime keys siblings as `<tag>-<n>`, so dropping a faded
@@ -47,43 +47,56 @@ export const createStreamTailNode = (data: StreamTailData): Element => ({
 export const readStreamTailData = (node?: Element): StreamTailData | undefined =>
   (node?.data as StreamTailElementData | undefined)?.streamdown;
 
+interface StreamTailProps {
+  node?: Element;
+}
+
 // Delays are frozen per mounted instance, not in the plugin runtime: a
 // structural remount (a paragraph turning into a setext heading swaps <p>
 // for <h2>) restarts every CSS animation, and the fresh instance has to
 // resume each char from its real elapsed time instead of replaying the
 // delay captured at its first ever render.
-export const StreamTail = ({ node }: { node?: Element }) => {
-  const delaysRef = useRef<Map<number, CSSProperties | null>>(new Map());
-  const data = readStreamTailData(node);
-  if (!data) return null;
+//
+// Every rehype run rebuilds the node, so memo compares the tail data it
+// carries. Skipping a render is safe: per-key delays are already frozen in
+// delaysRef, so an equal tail would produce identical output.
+export const StreamTail = memo<StreamTailProps>(
+  ({ node }) => {
+    const delaysRef = useRef<Map<number, CSSProperties | null>>(new Map());
+    const data = readStreamTailData(node);
+    if (!data) return null;
 
-  const now = getNow();
-  const styleOf = (item: StreamCharItem): CSSProperties | null => {
-    if (item.birth === null) return null;
-    const cached = delaysRef.current.get(item.key);
-    if (cached !== undefined) return cached;
-    const elapsed = now - item.birth;
-    const style = elapsed >= STREAM_FADE_DURATION ? null : { animationDelay: `${-elapsed}ms` };
-    delaysRef.current.set(item.key, style);
-    return style;
-  };
+    const now = getNow();
+    const styleOf = (item: StreamCharItem): CSSProperties | null => {
+      if (item.birth === null) return null;
+      const cached = delaysRef.current.get(item.key);
+      if (cached !== undefined) return cached;
+      const elapsed = now - item.birth;
+      const style = elapsed >= STREAM_FADE_DURATION ? null : { animationDelay: `${-elapsed}ms` };
+      delaysRef.current.set(item.key, style);
+      return style;
+    };
 
-  return (
-    <>
-      {data.text}
-      {data.items.map((item) => {
-        if (typeof item === 'string') return item;
-        const style = styleOf(item);
-        return (
-          <span
-            className={style ? 'stream-char' : 'stream-char stream-char-revealed'}
-            key={item.key}
-            style={style ?? undefined}
-          >
-            {item.value}
-          </span>
-        );
-      })}
-    </>
-  );
-};
+    return (
+      <>
+        {data.text}
+        {data.items.map((item) => {
+          if (typeof item === 'string') return item;
+          const style = styleOf(item);
+          return (
+            <span
+              className={style ? 'stream-char' : 'stream-char stream-char-revealed'}
+              key={item.key}
+              style={style ?? undefined}
+            >
+              {item.value}
+            </span>
+          );
+        })}
+      </>
+    );
+  },
+  (prev, next) => isDeepEqual(readStreamTailData(prev.node), readStreamTailData(next.node)),
+);
+
+StreamTail.displayName = 'StreamTail';
