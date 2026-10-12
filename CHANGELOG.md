@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.4.1](https://github.com/lobehub/streamdown/compare/v1.4.0...v1.4.1) (2026-10-12)
+
+
+### ⚡ Performance Improvements
+
+* Memoize StreamTail and StreamdownStyles to skip no-op renders ([a0d1aa1](https://github.com/lobehub/streamdown/commit/a0d1aa1))
+
 # [1.4.0](https://github.com/lobehub/streamdown/compare/v1.3.1...v1.4.0) (2026-09-26)
 
 
