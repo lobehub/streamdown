@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, memo, type PropsWithChildren, use } from 'react';
+import { createContext, memo, type PropsWithChildren, useContext } from 'react';
 
 import { type StreamdownProfiler } from './profiler';
 
@@ -12,12 +12,14 @@ export interface StreamdownProfilerProviderProps {
 
 export const StreamdownProfilerProvider = memo<PropsWithChildren<StreamdownProfilerProviderProps>>(
   ({ children, profiler = null }) => {
-    return <StreamdownProfilerContext value={profiler}>{children}</StreamdownProfilerContext>;
+    return (
+      <StreamdownProfilerContext.Provider value={profiler}>{children}</StreamdownProfilerContext.Provider>
+    );
   },
 );
 
 StreamdownProfilerProvider.displayName = 'StreamdownProfilerProvider';
 
 export const useStreamdownProfiler = () => {
-  return use(StreamdownProfilerContext);
+  return useContext(StreamdownProfilerContext);
 };
