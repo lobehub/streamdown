@@ -1,10 +1,3 @@
-import {
-  ClaudeCode,
-  Codex,
-  Cursor,
-  GithubCopilot,
-  Windsurf,
-} from "@lobehub/icons";
 import { Flexbox, Text } from "@lobehub/ui";
 import {
   AgentSkillCard,
@@ -23,14 +16,6 @@ import { renderLink } from "./renderLink";
 const SITE_URL = "https://streamdown.lobehub.com";
 const REPO = "https://github.com/lobehub/streamdown";
 const NPM = "https://www.npmjs.com/package/@lobehub/streamdown";
-
-const AGENTS = [
-  { avatar: ClaudeCode.Avatar, title: "Claude Code" },
-  { avatar: Codex.Avatar, title: "Codex" },
-  { avatar: Cursor.Avatar, title: "Cursor" },
-  { avatar: GithubCopilot.Avatar, title: "GitHub Copilot" },
-  { avatar: Windsurf.Avatar, title: "Windsurf" },
-];
 
 // Standard landing hero (building-landing-home) with the original hero stream below it, then the
 // original Vite site's sections (f3ba7b3:site/src/App.tsx): Features → Playground → footer.
@@ -55,7 +40,6 @@ export default function Home({ description }: { description: string }) {
         ]}
         aside={
           <AgentSkillCard
-            agents={AGENTS}
             agent={{
               code: `Read ${SITE_URL}/skills.md and follow it to render streaming LLM markdown with @lobehub/streamdown.`,
               description:
@@ -100,12 +84,14 @@ export default function Home({ description }: { description: string }) {
             "Tune the stream and watch the profiler respond in real time."
           }
         >
-          <Playground />
-          <Text as={"p"} fontSize={13} type={"secondary"}>
-            Reveal commits sit deliberately below the display refresh —
-            per-character stagger rides CSS <code>animation-delay</code>, not a
-            re-render every frame.
-          </Text>
+          <Flexbox gap={24} width={"100%"}>
+            <Playground />
+            <Text as={"p"} fontSize={13} type={"secondary"}>
+              Reveal commits sit deliberately below the display refresh —
+              per-character stagger rides CSS <code>animation-delay</code>, not
+              a re-render every frame.
+            </Text>
+          </Flexbox>
         </LandingSection>
       </div>
 
