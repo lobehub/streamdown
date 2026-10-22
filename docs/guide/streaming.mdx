@@ -1,0 +1,35 @@
+---
+title: Streaming & Blocks
+description: How Streamdown splits streaming markdown into top-level blocks, freezes the finished ones and re-renders only the open tail.
+---
+
+import Streaming from "../../src/Streamdown/demos/Streaming.tsx?demo";
+
+## Block splitting
+
+Every commit, Streamdown lexes the content into top-level blocks with `marked`: paragraphs, headings, lists, tables, code fences, block quotes. Each block is rendered by its own memoized `CachedMarkdown`, so a block whose text did not change is not re-rendered.
+
+## Frozen prefix
+
+Paragraphs, headings, code fences, tables, block quotes and thematic breaks can never grow again once a blank line follows them. Tokens up to such a boundary are frozen and reused; only the text after it is completed by [remend](/guide/remend) and lexed again. Lists and indented code are not frozen, because `- a` + blank line + `- b` merges back into one list.
+
+The result: the cost of a commit tracks the open tail, not the whole message. Change the upstream chunk size below and compare root and block commit cost.
+
+<Demo
+  of={Streaming}
+  title="Chunk size vs. commit cost"
+  layout="bare"
+  editable={false}
+/>
+
+## Commit pacing
+
+Because every reveal commit re-parses the trailing block, the smoother widens the commit interval as the tail grows (up to 96ms), so long paragraphs, lists and fences keep the total work bounded while short blocks stay at the preset's snappy interval. The per-character `animation-delay` stagger hides the lower commit rate.
+
+## Block states
+
+Internally each block is `revealed`, `animating`, `streaming` or `queued`. `useStreamQueue(blocks)` exposes this state machine (with `BlockInfo` and `BlockState` types) if you build a custom renderer.
+
+## Limitation: cross-block references
+
+Each top-level block is parsed independently, so a reference whose target sits in another block stays literal: GFM footnotes, reference-style links (`[text][ref]`) and reference-style images. Inline forms are unaffected. Supply a remark/rehype plugin pair if you need to resolve these out of band.

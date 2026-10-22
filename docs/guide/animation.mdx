@@ -1,0 +1,27 @@
+---
+title: Animation
+description: How Streamdown fades in newly revealed text per character or per word with CSS, and how to style or disable the fade.
+---
+
+import Animation from "../../src/Streamdown/demos/Animation.tsx?demo";
+
+## Per-character fade
+
+The `rehypeStreamAnimated` plugin wraps newly revealed text so it fades in. Each character gets a staggered `animation-delay`, chained after the previous one, so fades never race out of order and React does not need to re-render every frame. A cap on how far the fade queue can run ahead of "now" prevents a stream faster than the fade from piling up seconds of invisible backlog.
+
+<Demo
+  of={Animation}
+  title="char vs. word granularity"
+  layout="bare"
+  editable={false}
+/>
+
+## granularity
+
+`granularity="char"` (default) fades each character; `granularity="word"` fades whole words together.
+
+## Styles
+
+Streamdown injects its fade keyframes with a React 19 `<style href precedence>` element, which React hoists and dedupes into `<head>`, so it is SSR-safe. The animated wrapper carries `STREAMDOWN_ANIMATED_CLASS` (`'streamdown-animated'`), and the fade lasts `STREAM_FADE_DURATION` (180ms). KaTeX display math is excluded from the fade.
+
+Under `prefers-reduced-motion: reduce`, block-level fades are turned off.

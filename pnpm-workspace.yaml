@@ -7,11 +7,15 @@ publicHoistPattern:
   - '*prettier*'
   - '*semantic-release*'
 
-packages:
-  - site
-
 allowBuilds:
+  esbuild: true
+  node-pty: false
   unrs-resolver: true
 
 patchedDependencies:
   conventional-changelog-gitmoji-config@1.5.2: patches/conventional-changelog-gitmoji-config@1.5.2.patch
+
+minimumReleaseAgeExclude:
+  - '@lobehub/docs-kit@6.2.1'
+  - '@lobehub/icons@6.4.0'
+  - framer-motion@14.5.0

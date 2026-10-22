@@ -1,0 +1,63 @@
+---
+title: Getting Started
+description: Install @lobehub/streamdown, render a streaming message, add math and code highlighting, and style the output yourself.
+---
+
+import Basic from "../../src/Streamdown/demos/index.tsx?demo";
+
+## Installation
+
+```bash
+pnpm add @lobehub/streamdown
+```
+
+The package is ESM only. `react` and `react-dom` `^19` are peer dependencies. It ships a `'use client'` boundary, so it renders from React Server Component frameworks without extra wiring.
+
+## Render a stream
+
+Pass the markdown received so far as `content` and re-render as chunks arrive. There is nothing to reset between chunks: Streamdown keeps finished blocks cached and only re-lexes the open tail.
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+
+export const Message = ({ content }: { content: string }) => (
+  <Streamdown content={content} />
+);
+```
+
+<Demo of={Basic} title="A simulated stream" />
+
+## Add math and GFM
+
+Plugins are passed through to react-markdown. When you render math, enable `latexGuard` so a half-arrived formula keeps the previous frame instead of flashing raw source.
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
+
+export const Message = ({ content }: { content: string }) => (
+  <Streamdown
+    content={content}
+    latexGuard
+    rehypePlugins={[rehypeKatex]}
+    remarkPlugins={[remarkGfm, remarkMath]}
+  />
+);
+```
+
+## Style the output
+
+Streamdown is headless: no stylesheet, no component dependencies. The rendered tree is plain markdown HTML plus fade animation classes (`STREAMDOWN_ANIMATED_CLASS`, `STREAM_FADE_DURATION`); the fade keyframes are injected for you. Wrap it in your own typography, and swap elements through `components`, for example a code highlighter for `pre` (see [Code Fences](/guide/code-fences)).
+
+## Next steps
+
+- [Streaming & Blocks](/guide/streaming): how content is split and cached
+- [Smooth Reveal](/guide/smooth-reveal): the `smoothing` presets
+- [Animation](/guide/animation): per-character or per-word fades
+- [LaTeX](/guide/latex): `latexGuard` and the preprocessing helpers
+- [remend](/guide/remend): completing unclosed markdown on the open tail
+- [Streamdown API](/components/streamdown#api) and the [Playground](/components/streamdown#playground)
+- [Streamdown Profiler](/components/profiler): measuring commit cost

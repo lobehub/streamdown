@@ -1,0 +1,52 @@
+---
+title: Code Fences
+description: Render open and closed code fences while streaming, plug in your own highlighter and diagrams, and detect an open fence with findOpenFenceLanguage.
+---
+
+import CodeFence from "../../src/Streamdown/demos/CodeFence.tsx?demo";
+
+## Open fences
+
+An unterminated fence is completed on the open tail, so it renders as a code block from its first line. Code blocks skip the per-character fade and reveal as a block; prose resumes the fade after the fence.
+
+<Demo
+  of={CodeFence}
+  title="Streaming a code fence and a diagram"
+  layout="bare"
+  editable={false}
+/>
+
+## Highlighting with components
+
+Streamdown renders a plain `<pre><code class="language-…">`. Replace `pre` through `components` to highlight it. Highlighting and diagram rendering cost far more than a reveal commit, so the demo above keeps a block as plain text until its source has held still for 180ms, then upgrades it to Lobe UI's `Highlighter` or `Mermaid`.
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+import { Highlighter } from "@lobehub/ui";
+import {
+  Children,
+  type ComponentPropsWithoutRef,
+  isValidElement,
+  type ReactElement,
+} from "react";
+
+const Pre = ({ children, ...rest }: ComponentPropsWithoutRef<"pre">) => {
+  const code = Children.toArray(children).find(isValidElement) as
+    ReactElement<{ children?: string; className?: string }> | undefined;
+  const language = /language-([\w-]+)/.exec(code?.props.className ?? "")?.[1];
+  if (!language) return <pre {...rest}>{children}</pre>;
+  return (
+    <Highlighter language={language}>
+      {String(code?.props.children ?? "")}
+    </Highlighter>
+  );
+};
+
+<Streamdown components={{ pre: Pre }} content={content} />;
+```
+
+## findOpenFenceLanguage
+
+`findOpenFenceLanguage(content)` returns the language of the last unclosed fence, `''` for a fence without a language, or `null` when every fence is closed. It looks for three backticks at the start of a line; tildes and indented fences are not detected.
+
+The smoother uses it to bypass its buffer for some languages: while the input ends inside an open `html` fence, every chunk is shown immediately so a live HTML preview sees partial HTML at the real production rate. Smoothing resumes as soon as the fence closes.

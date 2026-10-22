@@ -1,0 +1,62 @@
+---
+title: LaTeX
+description: Render math while it streams with remark-math and rehype-katex, hold incomplete formulas with latexGuard, and clean model output with preprocessLaTeX.
+---
+
+import Latex from "../../src/Streamdown/demos/Latex.tsx?demo";
+
+## Setup
+
+Math rendering comes from your plugins. Add `remark-math` and `rehype-katex`, load KaTeX's CSS, and enable `latexGuard`.
+
+```tsx
+import { preprocessLaTeX, Streamdown } from "@lobehub/streamdown";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
+
+<Streamdown
+  content={content}
+  latexGuard
+  preprocess={preprocessLaTeX}
+  rehypePlugins={[rehypeKatex]}
+  remarkPlugins={[remarkMath]}
+/>;
+```
+
+<Demo
+  of={Latex}
+  title="Toggle the guard and the preprocessor"
+  layout="bare"
+  editable={false}
+/>
+
+## latexGuard
+
+With `latexGuard`, Streamdown holds the previous frame while the trailing formula is still incomplete, so a half-streamed `$$…` block never flashes raw source or a KaTeX parse error. It uses `isLastFormulaRenderable(text)`, which finds the trailing formula still waiting for its closing delimiter (skipping code spans and fences) and checks whether KaTeX can already render it.
+
+## preprocessLaTeX
+
+Models emit math in shapes remark-math does not parse. Pass `preprocessLaTeX` as `preprocess` to normalize the text before rendering. By default it:
+
+- escapes currency dollars such as `$20` or `$1,000`
+- converts `\[…\]` to `$$…$$` and `\(…\)` to `$…$`
+- escapes mhchem commands, pipes inside formulas (so tables do not split), and underscores inside `\text{}`
+
+Code blocks are protected throughout. Optional steps are enabled through the second argument:
+
+| Option                   | Default | Effect                                                      |
+| ------------------------ | ------- | ----------------------------------------------------------- |
+| `escapeCurrency`         | `true`  | Escape currency dollar signs                                |
+| `convertBrackets`        | `true`  | Convert bracket delimiters to dollar delimiters             |
+| `escapeMhchem`           | `true`  | Escape mhchem commands                                      |
+| `escapePipes`            | `true`  | Escape `\|` inside formulas                                 |
+| `escapeUnderscores`      | `true`  | Escape underscores in `\text{}`                             |
+| `fixErrors`              | `false` | Balance unmatched braces and `\left` / `\right`             |
+| `normalizeSpacing`       | `false` | Normalize whitespace in formulas                            |
+| `handleCJK`              | `false` | Handle CJK characters next to formulas                      |
+| `addCJKSpaces`           | `false` | Add spaces between CJK text and formulas (with `handleCJK`) |
+| `validate`               | `false` | Validate every formula                                      |
+| `throwOnValidationError` | `false` | Throw when validation fails (with `validate`)               |
+
+`preprocessLaTeXMinimal` and `preprocessLaTeXStrict` are exported as well, together with the individual steps: `escapeCurrencyDollars`, `convertLatexDelimiters`, `escapeMhchemCommands`, `escapeLatexPipes`, `escapeTextUnderscores`, `fixCommonLaTeXErrors`, `normalizeLatexSpacing`, `handleCJKWithLatex` and `validateLatexExpressions`.

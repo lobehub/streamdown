@@ -4,7 +4,9 @@ node_modules
 # build output
 es
 dist
-site/dist
+
+# docs
+.react-router
 
 # ci
 coverage

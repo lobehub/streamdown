@@ -6,10 +6,15 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
+    "paths": {
+      "@lobehub/streamdown": ["./src"],
+      "@lobehub/streamdown/*": ["./src/*"]
+    },
     "skipLibCheck": true,
     "strict": true,
     "target": "es2020",
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vite/client", "vitest/globals"]
   },
-  "include": ["src", "tsdown.config.ts", "vitest.config.ts"]
+  "exclude": [".react-router", "dist", "es"],
+  "include": ["src", "docs", "docs.config.ts", "tsdown.config.ts", "vitest.config.ts"]
 }

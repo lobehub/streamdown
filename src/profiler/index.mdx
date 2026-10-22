@@ -1,0 +1,86 @@
+---
+title: Streamdown Profiler
+description: Measure Streamdown's root and block commit cost, reveal frames and input chunks with createStreamdownProfiler and StreamdownProfilerProvider from @lobehub/streamdown/profiler.
+category: General
+order: 1
+---
+
+import HighTps from "./demos/index.tsx?demo";
+
+## Introduction
+
+The profiler is a separate entry, `@lobehub/streamdown/profiler`, so it never lands in your bundle unless you import it. Create a profiler, provide it above any `<Streamdown />`, and read its snapshot. Without a provider, Streamdown skips all measurement.
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+import {
+  createStreamdownProfiler,
+  StreamdownProfilerProvider,
+} from "@lobehub/streamdown/profiler";
+import { useMemo, useSyncExternalStore } from "react";
+
+const Message = ({ content }: { content: string }) => {
+  const profiler = useMemo(
+    () => createStreamdownProfiler({ label: "chat" }),
+    [],
+  );
+  const snapshot = useSyncExternalStore(
+    profiler.subscribe,
+    profiler.getSnapshot,
+  );
+
+  return (
+    <StreamdownProfilerProvider profiler={profiler}>
+      <Streamdown content={content} />
+      <small>root commit avg {snapshot.root.avgMs.toFixed(2)}ms</small>
+    </StreamdownProfilerProvider>
+  );
+};
+```
+
+## High-TPS stream
+
+Two thousand characters per second of mixed markdown: long paragraphs, a code fence, a table and a diagram. The panel shows main-thread load (event-loop lag, plus the Compute Pressure API where available), root and block commit cost, reveal frame cost and input chunk size.
+
+<Demo
+  of={HighTps}
+  title="Profiling a 2000 chars/s stream"
+  layout="bare"
+  editable={false}
+/>
+
+## createStreamdownProfiler
+
+```ts
+createStreamdownProfiler(options?: CreateStreamdownProfilerOptions): StreamdownProfiler
+```
+
+| Option             | Type     | Default        | Description                                     |
+| ------------------ | -------- | -------------- | ----------------------------------------------- |
+| `label`            | `string` | `'streamdown'` | Label stored in the snapshot                    |
+| `maxBlocks`        | `number` | `12`           | How many per-block summaries the snapshot keeps |
+| `notifyIntervalMs` | `number` | `120`          | Minimum interval between subscriber updates     |
+
+The returned `StreamdownProfiler` has `getSnapshot()`, `subscribe(listener)` and `reset(label?)`, plus the `record*` methods Streamdown calls internally (`recordRootCommit`, `recordBlockCommit`, `recordAnimationFrame`, `recordCalculation`, `recordInputAppend`).
+
+## Snapshot
+
+`StreamdownProfilerSnapshot` contains:
+
+| Field             | What it measures                                                       |
+| ----------------- | ---------------------------------------------------------------------- |
+| `root`            | Commits of the whole Streamdown tree: avg/max/last ms, mounts, updates |
+| `blocks`          | Per-block commit summaries (up to `maxBlocks`)                         |
+| `blocksAggregate` | All block commits together, with `trackedCount`                        |
+| `animation`       | Reveal frames: cost, backlog, revealed chars, skipped and slow frames  |
+| `calculations`    | Named calculations such as block lexing                                |
+| `fps`             | Commit rate: current, average, min, max                                |
+| `input`           | Upstream chunks: count, average and max size, total chars              |
+
+## useStreamdownProfiler
+
+`useStreamdownProfiler()` returns the profiler from the nearest provider, or `null`.
+
+## API
+
+<Api name="StreamdownProfilerProvider" />

@@ -1,0 +1,41 @@
+---
+title: Smooth Reveal
+description: The smoothing presets that turn bursty LLM chunks into a steady per-character reveal, and the useSmoothStreamContent hook behind them.
+---
+
+import Smoothing from "../../src/Streamdown/demos/Smoothing.tsx?demo";
+
+## Why smooth
+
+Upstream chunks arrive in bursts. Rendering each chunk as it lands makes text jump forward a sentence at a time. Streamdown buffers the incoming text and reveals it at an adaptive characters-per-second rate: faster when the buffer grows, draining the remainder once input goes quiet.
+
+## Presets
+
+`smoothing` picks one of three presets; the default is `balanced`.
+
+| Preset     | Target buffer | Min commit interval |
+| ---------- | ------------- | ------------------- |
+| `realtime` | 40ms          | 32ms                |
+| `balanced` | 120ms         | 48ms                |
+| `silky`    | 170ms         | 56ms                |
+
+`realtime` keeps the smallest buffer for the lowest latency; `silky` holds the longest buffer for the steadiest flow. The same bursty stream feeds all three panes below.
+
+<Demo
+  of={Smoothing}
+  title="One stream, three presets"
+  layout="bare"
+  editable={false}
+/>
+
+## useSmoothStreamContent
+
+The pacing is available as a hook for custom renderers:
+
+```tsx
+import { useSmoothStreamContent } from "@lobehub/streamdown";
+
+const visible = useSmoothStreamContent(content, { preset: "balanced" });
+```
+
+Options are `enabled` (default `true`), `preset` (default `'balanced'`), `remend` (options for the remend pass on the open tail) and `tailUnitsRef`, through which the component reports the real length of the tail block.

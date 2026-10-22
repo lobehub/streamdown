@@ -1,0 +1,83 @@
+---
+title: Streamdown
+description: Streamdown renders partial markdown from an LLM stream with block caching, smooth per-character reveal and a LaTeX guard. It ships no stylesheet.
+category: General
+order: 0
+---
+
+import Basic from "./demos/index.tsx?demo";
+import Playground from "./demos/Playground.tsx?demo";
+
+## Introduction
+
+`<Streamdown />` takes the markdown received so far as `content` and renders it as it grows. `content` may be a partial document: an unterminated code fence, a half-written table, or a formula missing its closing `$`. The engine re-lexes only the open tail block, so the cost of a commit grows with the tail, not with the message.
+
+The component is headless. The rendered tree is plain markdown HTML plus fade animation classes, so you bring the typography (this site wraps it in Lobe UI's `Typography`). See [Getting Started](/guide/getting-started) for installation.
+
+## Basic Usage
+
+<Demo
+  of={Basic}
+  title="Basic usage"
+  description="Append a few characters every 30ms and pass the growing string as content."
+/>
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+
+const Message = ({ content }: { content: string }) => (
+  <Streamdown
+    content={content}
+    latexGuard
+    rehypePlugins={[rehypeKatex]}
+    remarkPlugins={[remarkGfm, remarkMath]}
+  />
+);
+```
+
+## Playground
+
+Tune the upstream stream (sample, rate, chunk size, jitter) and the renderer (smoothing, granularity, LaTeX guard, preprocessing) and watch the profiler respond.
+
+<Demo of={Playground} title="Playground" layout="bare" editable={false} />
+
+Reveal commits sit deliberately below the display refresh: the per-character stagger rides CSS `animation-delay`, not a re-render every frame.
+
+## API
+
+<Api name="Streamdown" />
+
+| Prop                                             | Type                                  | Default      | Description                                                                                |
+| ------------------------------------------------ | ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------ |
+| `content`                                        | `string`                              | —            | The (partial) markdown to render                                                           |
+| `smoothing`                                      | `'realtime' \| 'balanced' \| 'silky'` | `'balanced'` | Reveal pacing preset                                                                       |
+| `granularity`                                    | `'char' \| 'word'`                    | `'char'`     | Fade animation unit                                                                        |
+| `latexGuard`                                     | `boolean`                             | `false`      | Hold the last frame while a trailing formula is incomplete                                 |
+| `preprocess`                                     | `(text: string) => string`            | —            | Transform content before rendering                                                         |
+| `remend`                                         | `RemendOptions`                       | —            | Options for the remend pass that completes the open tail block, e.g. `{ htmlTags: false }` |
+| `components` / `remarkPlugins` / `rehypePlugins` | —                                     | —            | Passed through to `react-markdown`                                                         |
+
+`StreamdownProps` extends react-markdown's `Options` (without `children`), so the other react-markdown options pass through as well.
+
+## Lower-level API
+
+Everything the component is built on is exported for custom pipelines:
+
+| Export                                                                                                                         | What it is                                               |
+| ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `useSmoothStreamContent`, `countChars`                                                                                         | The pacing hook behind `smoothing`                       |
+| `useStreamQueue` (`BlockInfo`, `BlockState`)                                                                                   | The block queue that decides which blocks animate        |
+| `rehypeStreamAnimated`, `resolveBlockAnimationMeta`                                                                            | The rehype plugin that tags freshly revealed nodes       |
+| `CachedMarkdown`                                                                                                               | The memoized per-block markdown renderer                 |
+| `findOpenFenceLanguage`                                                                                                        | Language of the last unclosed code fence, or `null`      |
+| `STREAM_FADE_DURATION`, `STREAMDOWN_ANIMATED_CLASS`                                                                            | Fade duration (ms) and the class on the animated wrapper |
+| `preprocessLaTeX`, `preprocessLaTeXMinimal`, `preprocessLaTeXStrict`, `validateLatexExpressions`, `isLastFormulaRenderable`, … | LaTeX preprocessing helpers, see [LaTeX](/guide/latex)   |
+
+Profiling lives in a separate entry, see [Streamdown Profiler](/components/profiler).
+
+## Limitations
+
+Each top-level block is parsed independently, so a reference whose target sits in another block stays literal: GFM footnotes, reference-style links (`[text][ref]`) and reference-style images. Inline forms are unaffected. Supply a remark/rehype plugin pair if you need to resolve these out of band.

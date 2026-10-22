@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 import { describe, expect, it } from 'vitest';
 
+import { createBlockLexer } from './blockLexer';
 import {
   codeSample,
   gfmEdgeSample,
@@ -10,8 +11,7 @@ import {
   markdownSample,
   mathEdgeSample,
   stressSample,
-} from '../site/src/lib/samples';
-import { createBlockLexer } from './blockLexer';
+} from './Streamdown/demos/shared/samples';
 
 const samples = {
   codeSample,
