@@ -2,6 +2,14 @@
 
 # Changelog
 
+## [1.4.4](https://github.com/lobehub/streamdown/compare/v1.4.3...v1.4.4) (2026-10-22)
+
+
+### 💄 Styles
+
+* Align docs favicon with lobe-ui ([5846ac9](https://github.com/lobehub/streamdown/commit/5846ac9))
+* Use lobe-ui favicon assets in docs ([6820be6](https://github.com/lobehub/streamdown/commit/6820be6))
+
 ## [1.4.3](https://github.com/lobehub/streamdown/compare/v1.4.2...v1.4.3) (2026-10-22)
 
 
