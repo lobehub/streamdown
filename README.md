@@ -6,9 +6,11 @@
 <img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-logo/assets/split.svg">
 <img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-emoji/assets/writing-hand.webp">
 
-<h1>Lobe Streamdown</h1>
+<h1>🌊 Streamdown</h1>
 
-Headless streaming markdown engine for React — render markdown as it arrives
+<h3>The Streaming Markdown Engine for React</h3>
+
+LobeHub's headless React renderer for markdown that streams in from LLMs. It caches finished blocks, reveals text smoothly character by character, and keeps half-typed LaTeX from flashing.
 
 [Documents & Playground](https://streamdown.lobehub.com) · [Changelog](https://github.com/lobehub/streamdown/releases) · [Report Bug][github-issues-link] · [Request Feature][github-issues-link]
 
@@ -36,31 +38,30 @@ Headless streaming markdown engine for React — render markdown as it arrives
 
 #### TOC
 
-- [✨ Features](#-features)
-- [📦 Installation](#-installation)
-- [🚀 Usage](#-usage)
-- [🧩 Props](#-props)
-- [🧬 Lower-level API](#-lower-level-api)
-  - [Limitation: cross-block references](#limitation-cross-block-references)
+- [✨ Why Streamdown?](#-why-streamdown)
+- [🚀 Getting Started](#-getting-started)
+- [⚙️ Common Options](#️-common-options)
+- [🤖 AI-Powered Development](#-ai-powered-development)
+- [📖 Documentation](#-documentation)
 - [⌨️ Local Development](#️-local-development)
 - [🤝 Contributing](#-contributing)
 - [🩷 Sponsor](#-sponsor)
 - [🔗 Links](#-links)
-  - [Credits](#credits)
-  - [More Products](#more-products)
-  - [Design Resources](#design-resources)
-  - [Development Resources](#development-resources)
 
 ####
 
 </details>
 
-## ✨ Features
+## ✨ Why Streamdown?
 
-- **Smooth reveal** — character or word granularity with three cadence presets (`realtime`, `balanced`, `silky`).
-- **Block cache** — finished blocks memoize; only the open tail block re-renders on each commit.
-- **LaTeX guard** — unbalanced delimiters stay inert until the stream closes them, so `$x^2$` never flashes as raw source.
-- **Headless** — no stylesheet, no component dependencies. Bring your own CSS.
+Streamdown renders the markdown an LLM has sent so far, and keeps rendering it as the rest arrives.
+
+- **Partial markdown just works**: an open code fence, a half-written table, an unclosed `**bold` or a formula missing its closing `$` render as formatted content, not raw syntax.
+- **Cheap commits**: finished blocks are cached, so each update only re-renders the open tail block.
+- **Smooth reveal**: bursty chunks turn into a steady per-character or per-word fade, with three pacing presets.
+- **LaTeX guard**: an incomplete trailing formula keeps the last good frame instead of flashing source or a KaTeX error.
+- **Headless**: no stylesheet and no component dependencies. Bring your own typography, highlighter and plugins.
+- **AI-native docs**: coding agents read the docs through [skills.md](https://streamdown.lobehub.com/skills.md) and [llms.txt](https://streamdown.lobehub.com/llms.txt).
 
 <div align="right">
 
@@ -68,12 +69,7 @@ Headless streaming markdown engine for React — render markdown as it arrives
 
 </div>
 
-## 📦 Installation
-
-> \[!IMPORTANT]\
-> This package is [ESM only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
-
-To install Streamdown, run the following command:
+## 🚀 Getting Started
 
 [![][pnpm-shield]][pnpm-link]
 
@@ -81,30 +77,56 @@ To install Streamdown, run the following command:
 $ pnpm add @lobehub/streamdown
 ```
 
-`react` and `react-dom` `^19` are peer dependencies. The package ships a `'use client'` boundary, so it renders from React Server Component frameworks without extra wiring.
+Streamdown is ESM only and needs `react` and `react-dom` `^19` as peer dependencies. It ships a `'use client'` boundary, so it also renders from React Server Component frameworks.
 
-<div align="right">
-
-[![][back-to-top]](#readme-top)
-
-</div>
-
-## 🚀 Usage
+Pass the markdown received so far as `content` and re-render as chunks arrive:
 
 ```tsx
-import { Streamdown } from '@lobehub/streamdown';
-import rehypeKatex from 'rehype-katex';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
+import { Streamdown } from "@lobehub/streamdown";
 
-const Message = ({ content }: { content: string }) => (
-  <Streamdown content={content} latexGuard rehypePlugins={[rehypeKatex]} remarkPlugins={[remarkGfm, remarkMath]} />
+export const Message = ({ content }: { content: string }) => (
+  <Streamdown content={content} />
 );
 ```
 
-`content` may be a partial document — an unterminated code fence, a half-written table, or a formula missing its closing `$`. The engine re-lexes only the open tail block, so the cost of a commit grows with the tail, not with the message.
+<div align="right">
 
-Style the output yourself. The rendered tree is plain markdown HTML plus fade animation classes (`STREAMDOWN_ANIMATED_CLASS`, `STREAM_FADE_DURATION`).
+[![][back-to-top]](#readme-top)
+
+</div>
+
+## ⚙️ Common Options
+
+```tsx
+import { preprocessLaTeX, Streamdown } from "@lobehub/streamdown";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
+
+export const Message = ({ content }: { content: string }) => (
+  <Streamdown
+    content={content}
+    granularity="word"
+    latexGuard
+    preprocess={preprocessLaTeX}
+    rehypePlugins={[rehypeKatex]}
+    remarkPlugins={[remarkGfm, remarkMath]}
+    smoothing="silky"
+  />
+);
+```
+
+| Prop                                             | Default      | Use it to                                                                        |
+| ------------------------------------------------ | ------------ | -------------------------------------------------------------------------------- |
+| `smoothing`                                      | `'balanced'` | Pick the reveal pace: `'realtime'`, `'balanced'` or `'silky'`                    |
+| `granularity`                                    | `'char'`     | Fade per character or per `'word'`                                               |
+| `latexGuard`                                     | `false`      | Hold the last frame while a trailing formula is incomplete (enable with math)    |
+| `preprocess`                                     | —            | Transform content before rendering, e.g. `preprocessLaTeX` for model-style LaTeX |
+| `remend`                                         | —            | Options for completing the open tail block, e.g. `{ htmlTags: false }`           |
+| `components` / `remarkPlugins` / `rehypePlugins` | —            | Passed through to `react-markdown`, e.g. a code highlighter for `pre`            |
+
+To measure commit cost in your app, wrap Streamdown in `StreamdownProfilerProvider` from `@lobehub/streamdown/profiler`. The full API, the lower-level hooks and live demos are on the [documentation site][website-link].
 
 <div align="right">
 
@@ -112,17 +134,20 @@ Style the output yourself. The rendered tree is plain markdown HTML plus fade an
 
 </div>
 
-## 🧩 Props
+## 🤖 AI-Powered Development
 
-| Prop                                               | Type                                   | Default        | Description                                                  |
-| -------------------------------------------------- | -------------------------------------- | -------------- | ------------------------------------------------------------ |
-| `content`                                          | `string`                               | —              | The (partial) markdown to render                             |
-| `smoothing`                                        | `'realtime' \| 'balanced' \| 'silky'`  | `'balanced'`   | Reveal pacing preset                                         |
-| `granularity`                                      | `'char' \| 'word'`                     | `'char'`       | Fade animation unit                                          |
-| `latexGuard`                                       | `boolean`                              | `false`        | Hold the last frame while a trailing formula is incomplete   |
-| `preprocess`                                       | `(text: string) => string`             | —              | Transform content before rendering                           |
-| `remend`                                           | `RemendOptions`                        | —              | Options for the remend pass that completes the open tail block, e.g. `{ htmlTags: false }` |
-| `components` / `remarkPlugins` / `rehypePlugins`   | —                                      | —              | Passed through to `react-markdown`                           |
+The docs are generated for coding agents as well as people.
+
+| Resource                                              | What it does                                                             |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| [skills.md](https://streamdown.lobehub.com/skills.md) | Agent skill entry point with a Markdown reference for every page         |
+| [llms.txt](https://streamdown.lobehub.com/llms.txt)   | Page index with outlines for [llms.txt](https://llmstxt.org)-aware tools |
+
+Paste this into Cursor, Claude Code, Codex or any other coding agent:
+
+```text
+Read https://streamdown.lobehub.com/skills.md, then use @lobehub/streamdown to render my chat's streaming assistant messages with GFM and math. Only use props and imports documented there.
+```
 
 <div align="right">
 
@@ -130,19 +155,12 @@ Style the output yourself. The rendered tree is plain markdown HTML plus fade an
 
 </div>
 
-## 🧬 Lower-level API
+## 📖 Documentation
 
-Everything the component is built on is exported for custom pipelines:
-
-- `useSmoothStreamContent` / `useStreamQueue` — pacing and block-queue primitives.
-- `rehypeStreamAnimated` — the rehype plugin that tags freshly revealed nodes.
-- `CachedMarkdown`, `findOpenFenceLanguage`, `STREAM_FADE_DURATION`.
-- LaTeX preprocessing: `preprocessLaTeX`, `validateLatexExpressions`, `isLastFormulaRenderable`, and friends.
-- `@lobehub/streamdown/profiler` — `StreamdownProfilerProvider` and hooks for measuring commit cost.
-
-### Limitation: cross-block references
-
-Each top-level block is parsed independently, so a reference whose target sits in another block stays literal: GFM footnotes, reference-style links (`[text][ref]`) and reference-style images. Inline forms are unaffected. Supply a remark/rehype plugin pair if you need to resolve these out of band.
+- **Docs and playground**: [streamdown.lobehub.com][website-link]
+- **Getting started**: [streamdown.lobehub.com/guide/getting-started](https://streamdown.lobehub.com/guide/getting-started)
+- **API**: [streamdown.lobehub.com/components/streamdown](https://streamdown.lobehub.com/components/streamdown)
+- **Changelog**: [CHANGELOG.md](./CHANGELOG.md)
 
 <div align="right">
 
@@ -156,26 +174,16 @@ You can use Github Codespaces for online development:
 
 [![][codespaces-shield]][codespaces-link]
 
-Or clone it for local development:
+Or clone it for local development (Node.js >= 22.22 and pnpm):
 
 ```bash
 $ git clone https://github.com/lobehub/streamdown.git
 $ cd streamdown
 $ pnpm install
-$ pnpm dev
+$ pnpm dev          # docs site with live demos (lobedocs dev)
 ```
 
-The remaining scripts:
-
-```bash
-$ pnpm build        # library → es/
-$ pnpm build:site   # site → site/dist
-$ pnpm deploy:site  # build + wrangler pages deploy
-
-$ pnpm test         # vitest
-$ pnpm type-check   # tsc, library + site
-$ pnpm lint
-```
+Contributor and agent guidance lives in [AGENTS.md](./AGENTS.md).
 
 <div align="right">
 
