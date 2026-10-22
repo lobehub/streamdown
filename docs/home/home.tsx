@@ -1,50 +1,42 @@
-import {
-  ClaudeCode,
-  Codex,
-  Cursor,
-  GithubCopilot,
-  Windsurf,
-} from "@lobehub/icons";
-import {
-  AgentSkillCard,
-  InstallBanner,
-  LandingHero,
-  LandingSection,
-} from "@lobehub/ui/awesome";
-import { GithubIcon } from "@lobehub/ui/icons";
+import { Flexbox, Snippet, Text } from "@lobehub/ui";
+import { LandingHero, LandingSection } from "@lobehub/ui/awesome";
 import { ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { useCallback } from "react";
+import { useNavigate } from "react-router";
 
-import { CodeShowcaseSection } from "./CodeShowcase";
-import { FeatureSection } from "./FeatureSection";
+import Playground from "../../src/Streamdown/demos/Playground";
+import { ApiSection } from "./ApiSection";
+import { Features } from "./Features";
+import { HeroDemo } from "./HeroDemo";
 import { renderLink } from "./renderLink";
 
-const SITE_URL = "https://streamdown.lobehub.com";
+const REPO = "https://github.com/lobehub/streamdown";
+const NPM = "https://www.npmjs.com/package/@lobehub/streamdown";
 const INSTALL_COMMAND = "pnpm add @lobehub/streamdown";
 
-const AGENTS = [
-  { avatar: ClaudeCode.Avatar, title: "Claude Code" },
-  { avatar: Codex.Avatar, title: "Codex" },
-  { avatar: Cursor.Avatar, title: "Cursor" },
-  { avatar: GithubCopilot.Avatar, title: "GitHub Copilot" },
-  { avatar: Windsurf.Avatar, title: "Windsurf" },
-];
-
-export default function Home({
-  description,
-  getStartedPathname,
-}: {
-  description: string;
-  getStartedPathname: string;
-}) {
+// Mirrors the original Vite site (f3ba7b3:site/src/App.tsx): Hero → Features → Playground → API.
+export default function Home({ description }: { description: string }) {
   const navigate = useNavigate();
+  // In-page anchors (#playground, #api) scroll; everything else goes through the router.
+  const onNavigate = useCallback(
+    (href: string) => {
+      if (href.startsWith("#")) {
+        document
+          .getElementById(href.slice(1))
+          ?.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+      navigate(href);
+    },
+    [navigate],
+  );
 
   return (
     <>
+      <span hidden data-pagefind-meta={`description:${description}`} />
       <LandingHero
-        accent={"Streaming Markdown"}
+        accent={"as it arrives"}
         renderLink={renderLink}
-        title={<span data-pagefind-meta="title">Streamdown</span>}
         actions={[
           {
             href: "/guide/getting-started",
@@ -53,85 +45,84 @@ export default function Home({
             label: "Get Started",
             primary: true,
           },
-          {
-            href: "https://github.com/lobehub/streamdown",
-            icon: GithubIcon,
-            label: "GitHub",
-          },
+          { href: "#playground", label: "Try the playground" },
         ]}
-        aside={
-          <AgentSkillCard
-            agents={AGENTS}
-            agent={{
-              code: `Read ${SITE_URL}/skills.md and follow it to render streaming LLM markdown with @lobehub/streamdown.`,
-              description:
-                "Send this prompt to your agent to wire up Streamdown",
-            }}
-            footer={
-              <>
-                <a href={"/skills.md"} rel={"noreferrer"} target={"_blank"}>
-                  skills.md
-                </a>
-                <a href={"/llms.txt"} rel={"noreferrer"} target={"_blank"}>
-                  llms.txt
-                </a>
-              </>
-            }
-          />
-        }
         badge={
-          <Link to={"/components/streamdown#playground"}>
-            Try the playground: tune the stream and watch the profiler →
-          </Link>
+          <span>
+            <b>New</b> Block-level caching, 2× less main-thread time
+          </span>
         }
         description={
-          <span data-pagefind-meta="description">{description}</span>
+          "A headless streaming markdown engine for React. Per-character reveal, block-level caching, and a LaTeX guard that keeps half-typed math from breaking mid-stream. Ships zero styles."
         }
-        onNavigate={navigate}
-      />
-
-      <LandingSection
-        eyebrow={"Why Streamdown"}
-        eyebrowColor={"orange"}
-        id={"home-features"}
-        renderLink={renderLink}
-        title={"Built for token streams"}
-        actions={[
-          { href: "/guide/introduction", label: "Why streaming markdown" },
-        ]}
-        description={
-          "Each feature answers one way token streams break ordinary markdown renderers."
+        title={
+          <span data-pagefind-meta="title:Streamdown">Render markdown</span>
         }
-        onNavigate={navigate}
+        onNavigate={onNavigate}
       >
-        <FeatureSection />
+        <Flexbox align={"center"} gap={32} width={"100%"}>
+          <Snippet language={"sh"}>{INSTALL_COMMAND}</Snippet>
+          <HeroDemo />
+        </Flexbox>
+      </LandingHero>
+
+      <LandingSection id={"home-features"}>
+        <Features />
       </LandingSection>
 
-      <LandingSection
-        actions={[{ href: "/guide/getting-started", label: "Getting started" }]}
-        eyebrow={"Usage"}
-        eyebrowColor={"green"}
-        id={"home-showcase"}
-        renderLink={renderLink}
-        title={"Drop in, then tune"}
-        description={
-          "The snippet on the left drives the live stream on the right."
-        }
-        onNavigate={navigate}
-      >
-        <CodeShowcaseSection />
-      </LandingSection>
+      <div id={"playground"}>
+        <LandingSection
+          id={"home-playground"}
+          title={"Playground"}
+          description={
+            "Tune the stream and watch the profiler respond in real time."
+          }
+        >
+          <Playground />
+          <Text as={"p"} fontSize={13} type={"secondary"}>
+            Reveal commits sit deliberately below the display refresh —
+            per-character stagger rides CSS <code>animation-delay</code>, not a
+            re-render every frame.
+          </Text>
+        </LandingSection>
+      </div>
 
-      <InstallBanner
-        command={INSTALL_COMMAND}
-        title={"Start streaming with Streamdown"}
-        footnote={
-          <>
-            Open source · MIT license ·{" "}
-            <Link to={getStartedPathname}>Get Started →</Link>
-          </>
-        }
-      />
+      <div id={"api"}>
+        <LandingSection
+          id={"home-api"}
+          title={"API"}
+          description={
+            <>
+              Props on the <code>&lt;Streamdown /&gt;</code> component, rendered
+              by Streamdown itself.
+            </>
+          }
+        >
+          <ApiSection />
+        </LandingSection>
+      </div>
+
+      <Flexbox
+        horizontal
+        align={"center"}
+        gap={16}
+        paddingBlock={32}
+        width={"100%"}
+      >
+        <Text fontSize={13} type={"secondary"}>
+          MIT © LobeHub
+        </Text>
+        <a href={REPO} rel={"noreferrer"} target={"_blank"}>
+          GitHub
+        </a>
+        <a href={NPM} rel={"noreferrer"} target={"_blank"}>
+          npm
+        </a>
+        <span style={{ flex: 1 }} />
+        <Text fontSize={13} type={"secondary"}>
+          Headless by design
+        </Text>
+      </Flexbox>
     </>
   );
 }
