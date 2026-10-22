@@ -1,0 +1,42 @@
+---
+title: Components & Plugins
+description: Style Streamdown's headless output, swap elements through react-markdown components, and add GFM, math, highlighting or diagrams with plugins.
+order: 2
+---
+
+Streamdown renders plain markdown HTML and stops there. Styling, syntax highlighting, diagrams and math all come from what you pass in, the same way you would extend react-markdown.
+
+## Override elements
+
+`components` is react-markdown's: map a tag name to your own React component, which receives the same props react-markdown would pass.
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+import type { Components } from "react-markdown";
+
+const components: Components = {
+  a: ({ node, ...props }) => <a {...props} rel="noreferrer" target="_blank" />,
+};
+
+<Streamdown components={components} content={content} />;
+```
+
+## Add capabilities
+
+Nothing below is bundled. Each row is something you add yourself, and how this site does it:
+
+| Capability                                       | How to add it                                                    | On this site                                                   |
+| ------------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| GFM tables, task lists, strikethrough, autolinks | `remark-gfm` in `remarkPlugins`                                  | `remark-gfm`                                                   |
+| Math                                             | `remark-math` + `rehype-katex`, KaTeX CSS and `latexGuard`       | See [LaTeX](/content/latex)                                    |
+| Syntax highlighting                              | A highlighter rendered from `components.pre`                     | Lobe UI `Highlighter`, see [Code Fences](/content/code-fences) |
+| Mermaid diagrams                                 | Render `language-mermaid` code with a diagram component in `pre` | Lobe UI `Mermaid`, see [Code Fences](/content/code-fences)     |
+| Typography                                       | Wrap the output in your own prose styles                         | Lobe UI `Typography`                                           |
+
+## Plugins see one block at a time
+
+Each top-level block is parsed by its own processor, so remark and rehype plugins receive one block, not the whole document. Plugins that work inside a block (GFM, math, highlighting) behave as usual. Plugins that link across blocks leave the reference literal: GFM footnotes, reference-style links and reference-style images. While a block is still animating, Streamdown appends its own `rehypeStreamAnimated` to your rehype plugins for that block.
+
+## Styling
+
+Streamdown ships no stylesheet. The only CSS it adds is the fade keyframes, injected through a React 19 `<style>` element. Animated text is wrapped in an element with `STREAMDOWN_ANIMATED_CLASS` (`'streamdown-animated'`) and fades over `STREAM_FADE_DURATION` (180ms); target that class to adjust it. See [Animation](/features/animation) for details.

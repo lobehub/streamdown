@@ -1,13 +1,12 @@
 ---
 title: Smooth Reveal
-description: The smoothing presets that turn bursty LLM chunks into a steady per-character reveal, and the useSmoothStreamContent hook behind them.
+description: The smoothing presets that turn bursty LLM chunks into a steady per-character reveal, and the hook behind them.
+order: 2
 ---
 
 import Smoothing from "../../src/Streamdown/demos/Smoothing.tsx?demo";
 
-## Why smooth
-
-Upstream chunks arrive in bursts. Rendering each chunk as it lands makes text jump forward a sentence at a time. Streamdown buffers the incoming text and reveals it at an adaptive characters-per-second rate: faster when the buffer grows, draining the remainder once input goes quiet.
+Models and networks deliver text in bursts, so rendering each chunk as it lands makes an answer jump forward a sentence at a time. Streamdown buffers incoming text and reveals it at an adaptive characters-per-second rate: faster when the buffer grows, draining the remainder once input goes quiet.
 
 ## Presets
 

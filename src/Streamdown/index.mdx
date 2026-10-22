@@ -12,7 +12,7 @@ import Playground from "./demos/Playground.tsx?demo";
 
 `<Streamdown />` takes the markdown received so far as `content` and renders it as it grows. `content` may be a partial document: an unterminated code fence, a half-written table, or a formula missing its closing `$`. The engine re-lexes only the open tail block, so the cost of a commit grows with the tail, not with the message.
 
-The component is headless. The rendered tree is plain markdown HTML plus fade animation classes, so you bring the typography (this site wraps it in Lobe UI's `Typography`). See [Getting Started](/guide/getting-started) for installation.
+The component is headless. The rendered tree is plain markdown HTML plus fade animation classes, so you bring the typography (this site wraps it in Lobe UI's `Typography`). See [Getting Started](/guide/getting-started) for installation, or the [Introduction](/guide/introduction) for why streaming needs its own renderer.
 
 ## Basic Usage
 
@@ -74,7 +74,7 @@ Everything the component is built on is exported for custom pipelines:
 | `CachedMarkdown`                                                                                                               | The memoized per-block markdown renderer                 |
 | `findOpenFenceLanguage`                                                                                                        | Language of the last unclosed code fence, or `null`      |
 | `STREAM_FADE_DURATION`, `STREAMDOWN_ANIMATED_CLASS`                                                                            | Fade duration (ms) and the class on the animated wrapper |
-| `preprocessLaTeX`, `preprocessLaTeXMinimal`, `preprocessLaTeXStrict`, `validateLatexExpressions`, `isLastFormulaRenderable`, … | LaTeX preprocessing helpers, see [LaTeX](/guide/latex)   |
+| `preprocessLaTeX`, `preprocessLaTeXMinimal`, `preprocessLaTeXStrict`, `validateLatexExpressions`, `isLastFormulaRenderable`, … | LaTeX preprocessing helpers, see [LaTeX](/content/latex) |
 
 Profiling lives in a separate entry, see [Streamdown Profiler](/components/profiler).
 

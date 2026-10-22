@@ -1,9 +1,12 @@
 ---
 title: Code Fences
-description: Render open and closed code fences while streaming, plug in your own highlighter and diagrams, and detect an open fence with findOpenFenceLanguage.
+description: Render open and closed code fences while streaming, plug in your own highlighter and diagrams, and detect an open fence.
+order: 0
 ---
 
 import CodeFence from "../../src/Streamdown/demos/CodeFence.tsx?demo";
+
+Code is where streaming hurts most: an unclosed fence can turn the rest of an answer into raw backticks. Streamdown renders an open fence as a code block from its first line, and leaves highlighting and diagrams to the components you plug in.
 
 ## Open fences
 

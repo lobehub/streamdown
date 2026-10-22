@@ -1,0 +1,78 @@
+---
+title: Usage
+description: Feed Streamdown from any token stream, use it with the AI SDK, and move over from react-markdown.
+order: 2
+---
+
+Streamdown has one required prop, `content`: the markdown received so far. Where that string comes from is up to you. Append each chunk to it and re-render; when the input stops, the smoother drains what it buffered, so the end of an answer reveals as smoothly as the rest.
+
+## From a fetch stream
+
+```tsx
+import { Streamdown } from "@lobehub/streamdown";
+import { useEffect, useState } from "react";
+
+export const Answer = ({ url }: { url: string }) => {
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const read = async () => {
+      const response = await fetch(url, { signal: controller.signal });
+      const reader = response
+        .body!.pipeThrough(new TextDecoderStream())
+        .getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        setContent((previous) => previous + value);
+      }
+    };
+
+    read().catch(() => {});
+    return () => controller.abort();
+  }, [url]);
+
+  return <Streamdown content={content} />;
+};
+```
+
+## With the AI SDK
+
+Any source that yields a growing string works. With the Vercel AI SDK's `useChat`, join a message's text parts and give each message a stable `key`. `@ai-sdk/react` is not a dependency of Streamdown; this is only an example.
+
+```tsx
+import { useChat } from "@ai-sdk/react";
+import { Streamdown } from "@lobehub/streamdown";
+
+export const Chat = () => {
+  const { messages } = useChat();
+
+  return messages.map((message) => (
+    <Streamdown
+      content={message.parts
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join("")}
+      key={message.id}
+    />
+  ));
+};
+```
+
+## Coming from react-markdown
+
+`StreamdownProps` extends react-markdown's `Options` without `children`. The markdown goes in `content`, and the rest carries over: `components`, `remarkPlugins`, `rehypePlugins`, `remarkRehypeOptions`, `allowedElements`, `disallowedElements`, `allowElement`, `unwrapDisallowed`, `skipHtml` and `urlTransform` (which defaults to react-markdown's `defaultUrlTransform`).
+
+```diff
+- import Markdown from "react-markdown";
++ import { Streamdown } from "@lobehub/streamdown";
+
+- <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
++ <Streamdown content={content} remarkPlugins={[remarkGfm]} />
+```
+
+Two differences to know about:
+
+- **Plugins run per block.** Each top-level block is parsed on its own, so references that point into another block (GFM footnotes, reference-style links and images) stay literal. See [Components & Plugins](/content/components#plugins-see-one-block-at-a-time).
+- **Streaming props.** `smoothing`, `granularity`, `latexGuard`, `preprocess` and `remend` control the streaming behavior; see the [API](/components/streamdown#api).

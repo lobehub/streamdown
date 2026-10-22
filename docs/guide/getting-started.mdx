@@ -1,17 +1,25 @@
 ---
 title: Getting Started
-description: Install @lobehub/streamdown, render a streaming message, add math and code highlighting, and style the output yourself.
+description: Install @lobehub/streamdown, render your first streaming message, then add GFM tables and math.
+order: 1
 ---
 
 import Basic from "../../src/Streamdown/demos/index.tsx?demo";
+
+This page takes you from install to a streaming message with tables and math in a few minutes. New to the problem Streamdown solves? Read the [Introduction](/guide/introduction) first.
+
+## Requirements
+
+- `react` and `react-dom` `^19` (peer dependencies).
+- An ESM toolchain: the package ships ESM only.
+
+It includes a `'use client'` boundary, so it renders from React Server Component frameworks without extra wiring.
 
 ## Installation
 
 ```bash
 pnpm add @lobehub/streamdown
 ```
-
-The package is ESM only. `react` and `react-dom` `^19` are peer dependencies. It ships a `'use client'` boundary, so it renders from React Server Component frameworks without extra wiring.
 
 ## Render a stream
 
@@ -27,7 +35,7 @@ export const Message = ({ content }: { content: string }) => (
 
 <Demo of={Basic} title="A simulated stream" />
 
-## Add math and GFM
+## Add GFM and math
 
 Plugins are passed through to react-markdown. When you render math, enable `latexGuard` so a half-arrived formula keeps the previous frame instead of flashing raw source.
 
@@ -48,16 +56,14 @@ export const Message = ({ content }: { content: string }) => (
 );
 ```
 
-## Style the output
+## Style it
 
-Streamdown is headless: no stylesheet, no component dependencies. The rendered tree is plain markdown HTML plus fade animation classes (`STREAMDOWN_ANIMATED_CLASS`, `STREAM_FADE_DURATION`); the fade keyframes are injected for you. Wrap it in your own typography, and swap elements through `components`, for example a code highlighter for `pre` (see [Code Fences](/guide/code-fences)).
+Streamdown ships no stylesheet, so the output inherits your typography. Swap elements such as `pre` through `components`; see [Components & Plugins](/content/components).
 
 ## Next steps
 
-- [Streaming & Blocks](/guide/streaming): how content is split and cached
-- [Smooth Reveal](/guide/smooth-reveal): the `smoothing` presets
-- [Animation](/guide/animation): per-character or per-word fades
-- [LaTeX](/guide/latex): `latexGuard` and the preprocessing helpers
-- [remend](/guide/remend): completing unclosed markdown on the open tail
+- [Usage](/guide/usage): connect a real stream, or move over from react-markdown
+- [Incomplete Markdown](/features/incomplete-markdown), [Block Memoization](/features/blocks), [Smooth Reveal](/features/smooth-reveal) and [Animation](/features/animation): what happens to each chunk
+- [Code Fences](/content/code-fences) and [LaTeX](/content/latex): rich content while it streams
 - [Streamdown API](/components/streamdown#api) and the [Playground](/components/streamdown#playground)
-- [Streamdown Profiler](/components/profiler): measuring commit cost
+- [Streamdown Profiler](/components/profiler): measure commit cost in your app

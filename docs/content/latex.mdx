@@ -1,9 +1,12 @@
 ---
 title: LaTeX
 description: Render math while it streams with remark-math and rehype-katex, hold incomplete formulas with latexGuard, and clean model output with preprocessLaTeX.
+order: 1
 ---
 
 import Latex from "../../src/Streamdown/demos/Latex.tsx?demo";
+
+Until its closing `$$` arrives, a streaming formula is either raw TeX or a KaTeX error. Streamdown renders math through the plugins you add, holds incomplete formulas with `latexGuard`, and normalizes the delimiters models actually emit with `preprocessLaTeX`.
 
 ## Setup
 

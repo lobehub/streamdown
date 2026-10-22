@@ -158,6 +158,7 @@ Read https://streamdown.lobehub.com/skills.md, then use @lobehub/streamdown to r
 ## 📖 Documentation
 
 - **Docs and playground**: [streamdown.lobehub.com][website-link]
+- **Introduction**: [streamdown.lobehub.com/guide/introduction](https://streamdown.lobehub.com/guide/introduction)
 - **Getting started**: [streamdown.lobehub.com/guide/getting-started](https://streamdown.lobehub.com/guide/getting-started)
 - **API**: [streamdown.lobehub.com/components/streamdown](https://streamdown.lobehub.com/components/streamdown)
 - **Changelog**: [CHANGELOG.md](./CHANGELOG.md)

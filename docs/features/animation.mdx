@@ -1,11 +1,14 @@
 ---
 title: Animation
-description: How Streamdown fades in newly revealed text per character or per word with CSS, and how to style or disable the fade.
+description: How Streamdown fades newly revealed text in per character or per word with CSS, and how to style or disable it.
+order: 3
 ---
 
 import Animation from "../../src/Streamdown/demos/Animation.tsx?demo";
 
-## Per-character fade
+Even at a steady pace, text that pops into existence reads as flicker. Streamdown fades newly revealed characters or words in with CSS, chained so fades never run out of order, without re-rendering React every frame.
+
+## How it works
 
 The `rehypeStreamAnimated` plugin wraps newly revealed text so it fades in. Each character gets a staggered `animation-delay`, chained after the previous one, so fades never race out of order and React does not need to re-render every frame. A cap on how far the fade queue can run ahead of "now" prevents a stream faster than the fade from piling up seconds of invisible backlog.
 

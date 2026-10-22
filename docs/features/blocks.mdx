@@ -1,9 +1,12 @@
 ---
-title: Streaming & Blocks
-description: How Streamdown splits streaming markdown into top-level blocks, freezes the finished ones and re-renders only the open tail.
+title: Block Memoization
+description: How Streamdown splits streaming markdown into top-level blocks, freezes finished ones and re-renders only the open tail.
+order: 1
 ---
 
 import Streaming from "../../src/Streamdown/demos/Streaming.tsx?demo";
+
+Re-rendering a whole message for every token gets slower as the answer grows. Streamdown splits the content into top-level blocks and re-parses only the one still being written, so the cost of a commit tracks the open tail, not the length of the message.
 
 ## Block splitting
 
@@ -11,9 +14,9 @@ Every commit, Streamdown lexes the content into top-level blocks with `marked`: 
 
 ## Frozen prefix
 
-Paragraphs, headings, code fences, tables, block quotes and thematic breaks can never grow again once a blank line follows them. Tokens up to such a boundary are frozen and reused; only the text after it is completed by [remend](/guide/remend) and lexed again. Lists and indented code are not frozen, because `- a` + blank line + `- b` merges back into one list.
+Paragraphs, headings, code fences, tables, block quotes and thematic breaks can never grow again once a blank line follows them. Tokens up to such a boundary are frozen and reused; only the text after it is completed by [remend](/features/incomplete-markdown) and lexed again. Lists and indented code are not frozen, because `- a` + blank line + `- b` merges back into one list.
 
-The result: the cost of a commit tracks the open tail, not the whole message. Change the upstream chunk size below and compare root and block commit cost.
+Change the upstream chunk size below and compare root and block commit cost.
 
 <Demo
   of={Streaming}

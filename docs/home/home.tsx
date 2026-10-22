@@ -15,7 +15,6 @@ import { GithubIcon } from "@lobehub/ui/icons";
 import { ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
-import { BentoGallery } from "./BentoGallery";
 import { CodeShowcaseSection } from "./CodeShowcase";
 import { FeatureSection } from "./FeatureSection";
 import { renderLink } from "./renderLink";
@@ -92,25 +91,20 @@ export default function Home({
       />
 
       <LandingSection
-        eyebrow={"Live"}
-        eyebrowColor={"blue"}
-        id={"home-gallery"}
+        eyebrow={"Why Streamdown"}
+        eyebrowColor={"orange"}
+        id={"home-features"}
         renderLink={renderLink}
-        title={"Render markdown as it arrives"}
+        title={"Built for token streams"}
         actions={[
-          {
-            href: "/components/streamdown",
-            icon: ArrowRight,
-            iconPlacement: "end",
-            label: "Open the playground",
-          },
+          { href: "/guide/introduction", label: "Why streaming markdown" },
         ]}
         description={
-          "Every tile below is a live Streamdown render, replaying a simulated LLM stream."
+          "Each feature answers one way token streams break ordinary markdown renderers."
         }
         onNavigate={navigate}
       >
-        <BentoGallery />
+        <FeatureSection />
       </LandingSection>
 
       <LandingSection
@@ -119,28 +113,13 @@ export default function Home({
         eyebrowColor={"green"}
         id={"home-showcase"}
         renderLink={renderLink}
-        title={"One component, a few props"}
+        title={"Drop in, then tune"}
         description={
-          "Switch tabs: each snippet on the left runs live on the right."
+          "The snippet on the left drives the live stream on the right."
         }
         onNavigate={navigate}
       >
         <CodeShowcaseSection />
-      </LandingSection>
-
-      <LandingSection
-        actions={[{ href: "/guide/streaming", label: "How it works" }]}
-        eyebrow={"Foundations"}
-        eyebrowColor={"orange"}
-        id={"home-features"}
-        renderLink={renderLink}
-        title={"Built for token streams"}
-        description={
-          "What happens between the network chunk and the painted character."
-        }
-        onNavigate={navigate}
-      >
-        <FeatureSection />
       </LandingSection>
 
       <InstallBanner

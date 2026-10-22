@@ -6,7 +6,7 @@ export default {
   },
   atomDirs: [{ dir: "src" }],
   description:
-    "Headless streaming markdown engine for React with block caching, smooth per-character reveal and a LaTeX guard.",
+    "A headless React renderer for LLM markdown: caches finished blocks, reveals text smoothly, completes half-typed syntax.",
   favicons: {
     appleTouchIcon: "/apple-touch-icon.png",
     icon: "/favicon.svg",
@@ -15,13 +15,16 @@ export default {
   },
   homePage: "./docs/home/home.tsx",
   publicDocs: [
+    "docs/guide/introduction.mdx",
     "docs/guide/getting-started.mdx",
-    "docs/guide/streaming.mdx",
-    "docs/guide/smooth-reveal.mdx",
-    "docs/guide/animation.mdx",
-    "docs/guide/code-fences.mdx",
-    "docs/guide/latex.mdx",
-    "docs/guide/remend.mdx",
+    "docs/guide/usage.mdx",
+    "docs/features/incomplete-markdown.mdx",
+    "docs/features/blocks.mdx",
+    "docs/features/smooth-reveal.mdx",
+    "docs/features/animation.mdx",
+    "docs/content/code-fences.mdx",
+    "docs/content/latex.mdx",
+    "docs/content/components.mdx",
   ],
   siteUrl: "https://streamdown.lobehub.com",
   themeConfig: {
@@ -36,24 +39,17 @@ export default {
         image: "https://streamdown.lobehub.com/og.png",
       },
     },
-    navItems: [
-      {
-        href: "/guide/getting-started",
-        icon: "rocket",
-        label: "Getting Started",
-      },
-      { href: "/guide/streaming", icon: "blocks", label: "Streaming & Blocks" },
-      {
-        href: "/guide/smooth-reveal",
-        icon: "activity",
-        label: "Smooth Reveal",
-      },
-      { href: "/guide/animation", icon: "sparkles", label: "Animation" },
-      { href: "/guide/code-fences", icon: "code", label: "Code Fences" },
-      { href: "/guide/latex", icon: "sigma", label: "LaTeX" },
-      { href: "/guide/remend", icon: "wand-sparkles", label: "remend" },
-    ],
     prefersColor: "auto",
+    // Sidebar order tells the story: why → how to start → streaming features → rich content,
+    // then the API pages.
+    sidebarGroups: [
+      { dir: "docs/guide", icon: "rocket", order: -3, title: "Get Started" },
+      { dir: "docs/features", icon: "activity", order: -2, title: "Streaming" },
+      { dir: "docs/content", icon: "shapes", order: -1, title: "Rich Content" },
+      // Without a group, src/ pages land in the built-in "Components" section, which docs-kit
+      // always pins to the top of the sidebar.
+      { dir: "src", icon: "code", order: 0, title: "API Reference" },
+    ],
     socialLinks: [
       {
         href: "https://github.com/lobehub/streamdown",

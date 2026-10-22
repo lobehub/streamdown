@@ -1,0 +1,30 @@
+---
+title: Incomplete Markdown
+description: How Streamdown completes unclosed markdown on the open tail with remend, so partial emphasis, links and code render formatted.
+order: 0
+---
+
+import Remend from "../../src/Streamdown/demos/Remend.tsx?demo";
+
+Mid-stream, markdown is almost never balanced: a bold run is opened but not closed, a link has its text but not yet its URL. Streamdown completes the open tail block before rendering it, so readers see formatting from the first character instead of raw markers that snap into place later.
+
+## How it works
+
+Before the open tail block is lexed, Streamdown runs it through [remend](https://github.com/vercel/streamdown), which completes unclosed markers such as emphasis, inline code, links and strikethrough. Only the tail is processed: blocks before it are already complete and [frozen](/features/blocks). Open code fences render as code blocks from their first line, see [Code Fences](/content/code-fences).
+
+<Demo
+  of={Remend}
+  title="Raw stream vs. rendered output"
+  layout="bare"
+  editable={false}
+/>
+
+## Options
+
+Pass remend options through the `remend` prop. For example, use `{ htmlTags: false }` when `<` in your content is prose or math rather than HTML:
+
+```tsx
+<Streamdown content={content} remend={{ htmlTags: false }} />
+```
+
+The same options are applied by the smoother (`useSmoothStreamContent`) and the block lexer, so both see the same completed tail.

@@ -12,23 +12,23 @@ on `react-markdown`, `marked` and `remend`. It has two entries, `@lobehub/stream
 `@lobehub/docs-kit` (the `lobedocs` CLI) from `docs/` and the `index.mdx` files under `src/`.
 Single pnpm package, Node >= 22.22 for the docs site.
 
-| Path                                                        | What lives there                                                                      |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `src/index.ts`                                              | Main entry; every public export is listed here                                        |
-| `src/Streamdown.tsx`                                        | The component and `StreamdownProps`; wires lexer, queue, smoother and rehype plugins  |
-| `src/types.ts`                                              | Shared public unions (`StreamSmoothingPreset`, `StreamAnimationGranularity`)          |
-| `src/blockLexer.ts`                                         | Block splitting with `marked`, frozen prefix, `remend` on the open tail               |
-| `src/useStreamQueue.ts`                                     | Block states (`revealed` / `animating` / `streaming` / `queued`) and char delay       |
-| `src/useSmoothStreamContent.ts`                             | Reveal pacing; `PRESET_CONFIG` holds the `realtime` / `balanced` / `silky` presets    |
-| `src/rehypeStreamAnimated.ts`, `src/streamAnimationMeta.ts` | Rehype plugin that wraps newly revealed text, and per-block animation timing          |
-| `src/styles.tsx`                                            | Fade keyframes, `STREAM_FADE_DURATION`, `STREAMDOWN_ANIMATED_CLASS`                   |
-| `src/CachedMarkdown.tsx`, `src/StreamTail.tsx`              | Memoized per-block renderer; streaming tail element                                   |
-| `src/latex.ts`, `src/fenceState.ts`                         | LaTeX preprocessing / `isLastFormulaRenderable`; `findOpenFenceLanguage`              |
-| `src/internal.ts`                                           | Shared internal helpers; never exported from an entry                                 |
-| `src/profiler/`                                             | The `./profiler` entry (`index.ts`, `profiler.ts`, `StreamdownProfilerProvider.tsx`)  |
-| `src/Streamdown/`, `src/profiler/index.mdx`                 | Docs only: component pages and `demos/` (not part of the published build)             |
-| `docs/`, `docs.config.ts`                                   | Guide pages (`docs/guide/*.mdx`), landing page (`docs/home/`), changelog, site config |
-| `public/`, `wrangler.jsonc`                                 | Static assets for the site; Cloudflare Pages config (`dist/`)                         |
+| Path                                                        | What lives there                                                                              |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `src/index.ts`                                              | Main entry; every public export is listed here                                                |
+| `src/Streamdown.tsx`                                        | The component and `StreamdownProps`; wires lexer, queue, smoother and rehype plugins          |
+| `src/types.ts`                                              | Shared public unions (`StreamSmoothingPreset`, `StreamAnimationGranularity`)                  |
+| `src/blockLexer.ts`                                         | Block splitting with `marked`, frozen prefix, `remend` on the open tail                       |
+| `src/useStreamQueue.ts`                                     | Block states (`revealed` / `animating` / `streaming` / `queued`) and char delay               |
+| `src/useSmoothStreamContent.ts`                             | Reveal pacing; `PRESET_CONFIG` holds the `realtime` / `balanced` / `silky` presets            |
+| `src/rehypeStreamAnimated.ts`, `src/streamAnimationMeta.ts` | Rehype plugin that wraps newly revealed text, and per-block animation timing                  |
+| `src/styles.tsx`                                            | Fade keyframes, `STREAM_FADE_DURATION`, `STREAMDOWN_ANIMATED_CLASS`                           |
+| `src/CachedMarkdown.tsx`, `src/StreamTail.tsx`              | Memoized per-block renderer; streaming tail element                                           |
+| `src/latex.ts`, `src/fenceState.ts`                         | LaTeX preprocessing / `isLastFormulaRenderable`; `findOpenFenceLanguage`                      |
+| `src/internal.ts`                                           | Shared internal helpers; never exported from an entry                                         |
+| `src/profiler/`                                             | The `./profiler` entry (`index.ts`, `profiler.ts`, `StreamdownProfilerProvider.tsx`)          |
+| `src/Streamdown/`, `src/profiler/index.mdx`                 | Docs only: component pages and `demos/` (not part of the published build)                     |
+| `docs/`, `docs.config.ts`                                   | Guide pages (`docs/{guide,features,content}/*.mdx`), landing page (`docs/home/`), site config |
+| `public/`, `wrangler.jsonc`                                 | Static assets for the site; Cloudflare Pages config (`dist/`)                                 |
 
 ## Using Skills
 
@@ -52,8 +52,13 @@ by hand.
 - **Component pages**: only files named `index.mdx` under `src` (`atomDirs`) become pages; the URL
   comes from the folder: `src/Streamdown/index.mdx` → `/components/streamdown`,
   `src/profiler/index.mdx` → `/components/profiler`.
-- **Guide pages**: `docs/guide/<name>.mdx` with `title` + `description`, listed in `publicDocs` and
-  `themeConfig.navItems` in `docs.config.ts`. They are served at `/guide/<name>`.
+- **Guide pages**: `docs/<group>/<name>.mdx` with `title`, `description` and `order`, listed in
+  `publicDocs` in `docs.config.ts` and served at `/<group>/<name>`. The folder picks the sidebar
+  group through `themeConfig.sidebarGroups`: `docs/guide` (Get Started: introduction, getting
+  started, usage), `docs/features` (Streaming: what happens to each chunk) and `docs/content`
+  (Rich Content: code, math, components and plugins); the `src` group puts component pages under
+  API Reference, after the guides. Open each page with a short paragraph that
+  states the problem before the first heading, then show the API.
 - **Frontmatter**: `title`, `description` (one or two plain sentences; feeds search and llms.txt),
   `category` on component pages (`General`), optional `order`. A PascalCase `title` makes the page
   header show `import { Title } from '@lobehub/streamdown'`, which is why the profiler page is
@@ -68,7 +73,7 @@ by hand.
 - **API tables**: `<Api name="Streamdown" />` and `<Api name="StreamdownProfilerProvider" />` read
   props from TypeScript. JSDoc on props becomes the description, and a JSDoc `@default` must equal
   the runtime default in the destructuring or the build fails.
-- **Links**: use site pathnames (`/guide/latex`, `/components/streamdown#api`); the build audits
+- **Links**: use site pathnames (`/content/latex`, `/components/streamdown#api`); the build audits
   every internal link and `#hash`.
 - **Preview and check**: `pnpm dev`, then `pnpm build:site`, which runs every docs audit. Restart
   the dev server after editing `docs.config.ts`.

@@ -1,0 +1,41 @@
+---
+title: Introduction
+description: Why markdown streamed from an LLM trips up ordinary renderers, and how Streamdown keeps it readable while it arrives.
+order: 0
+---
+
+import Remend from "../../src/Streamdown/demos/Remend.tsx?demo";
+
+Streamdown is a headless React component for markdown that is still being written. Hand it the text an LLM has produced so far: it renders that partial document as formatted output and keeps up as tokens arrive, without re-rendering the whole message for every chunk.
+
+## Why streaming breaks markdown
+
+A markdown renderer expects a finished document. A token stream gives it a new, unfinished one many times per second:
+
+- **Unclosed syntax.** Mid-stream the text reads `**Note:` or `[the docs](https://`. A plain renderer shows the asterisks and brackets until the closing marker lands, then the line suddenly reformats.
+- **Open blocks.** A code fence without its closing backticks, a table with half a row, a `$$` formula with no end: each one flips between raw text and a rendered block as it grows.
+- **Bursty delivery.** Models and networks deliver text in uneven chunks, so the answer lurches forward a sentence at a time instead of reading like typing.
+- **Repeated work.** Re-parsing the entire message for every token gets slower as the answer gets longer, right while the user is reading it.
+
+The demo plays one stream twice: the raw text the model sent, and what Streamdown renders from it.
+
+<Demo
+  of={Remend}
+  title="Raw stream vs. rendered output"
+  layout="bare"
+  editable={false}
+/>
+
+## What Streamdown does about it
+
+1. **Completes the open tail.** The last, unfinished block is patched with remend before it is rendered, so emphasis, inline code and links show formatted from their first character. See [Incomplete Markdown](/features/incomplete-markdown).
+2. **Caches finished blocks.** Content is split into top-level blocks, and blocks that can no longer change are frozen and memoized. A commit costs as much as the open tail, not the whole message. See [Block Memoization](/features/blocks).
+3. **Paces the reveal.** A buffer turns bursty chunks into a steady per-character flow, tuned by three presets. See [Smooth Reveal](/features/smooth-reveal).
+4. **Fades new text in.** Fresh characters or words fade in through CSS `animation-delay` rather than a React render per frame. See [Animation](/features/animation).
+5. **Guards math.** With `latexGuard`, a half-streamed formula keeps the last good frame instead of flashing raw TeX. See [LaTeX](/content/latex).
+
+## What it leaves to you
+
+Streamdown is headless. It ships no stylesheet, no syntax highlighter and no diagram renderer. Everything visual goes through react-markdown's `components` and the remark and rehype plugins you pass. [Components & Plugins](/content/components) shows how this site wires in GFM, KaTeX, code highlighting and Mermaid.
+
+Ready to try it? Continue with [Getting Started](/guide/getting-started).
