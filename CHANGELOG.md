@@ -2,6 +2,31 @@
 
 # Changelog
 
+## [1.4.2](https://github.com/lobehub/streamdown/compare/v1.4.1...v1.4.2) (2026-10-22)
+
+
+### 🎫 Chores
+
+* **type-check**: Switch to tsrs ([efa6d9b](https://github.com/lobehub/streamdown/commit/efa6d9b))
+* Add docs-kit agent skills ([9bb3a75](https://github.com/lobehub/streamdown/commit/9bb3a75))
+
+
+### 💄 Styles
+
+* Align agent avatars and playground footnote gap ([cbab8fa](https://github.com/lobehub/streamdown/commit/cbab8fa))
+* Use GitHub social preview as OG image ([8f1b548](https://github.com/lobehub/streamdown/commit/8f1b548))
+
+
+### 📝 Documentation
+
+* Point hero CTA to getting started ([69e9ac8](https://github.com/lobehub/streamdown/commit/69e9ac8))
+* Rebuild site with docs-kit ([d0ad154](https://github.com/lobehub/streamdown/commit/d0ad154))
+* Refine home hero and drop api section ([2ebb406](https://github.com/lobehub/streamdown/commit/2ebb406))
+* Refresh README and add AGENTS.md ([216bfea](https://github.com/lobehub/streamdown/commit/216bfea))
+* Restore original home modules ([d099900](https://github.com/lobehub/streamdown/commit/d099900))
+* Restructure site storytelling ([a760c79](https://github.com/lobehub/streamdown/commit/a760c79))
+* Sync Links with all nine LobeHub libraries ([d37fd9b](https://github.com/lobehub/streamdown/commit/d37fd9b))
+
 ## [1.4.1](https://github.com/lobehub/streamdown/compare/v1.4.0...v1.4.1) (2026-10-12)
 
 
