@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.4.3](https://github.com/lobehub/streamdown/compare/v1.4.2...v1.4.3) (2026-10-22)
+
+
+### 🐛 Bug Fixes
+
+* Remove account_id from wrangler for Cloudflare Pages ([e16c35b](https://github.com/lobehub/streamdown/commit/e16c35b))
+
 ## [1.4.2](https://github.com/lobehub/streamdown/compare/v1.4.1...v1.4.2) (2026-10-22)
 
 
