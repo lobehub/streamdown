@@ -2,9 +2,7 @@
 
 <div align="center">
 
-<img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-logo/assets/logo-3d.webp">
-<img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-logo/assets/split.svg">
-<img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-emoji/assets/writing-hand.webp">
+![](https://github.com/user-attachments/assets/ef37c74e-8223-4838-8eb1-b15181f53aea)
 
 <h1>🌊 Streamdown</h1>
 
@@ -28,8 +26,6 @@ LobeHub's headless React renderer for markdown that streams in from LLMs. It cac
 [![][github-stars-shield]][github-stars-link]
 [![][github-issues-shield]][github-issues-link]
 [![][github-license-shield]][github-license-link]
-
-[![][banner]][website-link]
 
 </div>
 
