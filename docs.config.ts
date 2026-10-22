@@ -36,7 +36,8 @@ export default {
     },
     metadata: {
       openGraph: {
-        image: "https://streamdown.lobehub.com/og.png",
+        image:
+          "https://repository-images.githubusercontent.com/1362345259/9438e06e-10ab-4265-b8f5-b396f923b2bb",
       },
     },
     prefersColor: "auto",
