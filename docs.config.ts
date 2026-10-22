@@ -9,9 +9,9 @@ export default {
     "A headless React renderer for LLM markdown: caches finished blocks, reveals text smoothly, completes half-typed syntax.",
   favicons: {
     appleTouchIcon: "/apple-touch-icon.png",
-    icon: "/favicon.svg",
-    icon16: "/favicon.svg",
-    icon32: "/favicon.svg",
+    icon: "/favicon.ico",
+    icon16: "/favicon-16x16.png",
+    icon32: "/favicon-32x32.png",
   },
   homePage: "./docs/home/home.tsx",
   publicDocs: [
