@@ -6,7 +6,7 @@
 <img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-logo/assets/split.svg">
 <img height="120" src="https://raw.githubusercontent.com/lobehub/lobe-assets/master/packages/assets-emoji/assets/writing-hand.webp">
 
-<h1>Streamdown</h1>
+<h1>Lobe Streamdown</h1>
 
 Headless streaming markdown engine for React — render markdown as it arrives
 
@@ -216,32 +216,15 @@ Every bit counts and your one-time donation sparkles in our galaxy of support! Y
 
 ## 🔗 Links
 
-### Credits
-
-- **[react-markdown](https://github.com/remarkjs/react-markdown)** - Markdown to React renderer
-- **[marked](https://github.com/markedjs/marked)** - Markdown lexer
-- **[KaTeX](https://github.com/KaTeX/KaTeX)** - Fast math typesetting
-- **[remend](https://github.com/vercel/streamdown)** - Partial markdown completion
-
-### More Products
-
-- **[🤯 Lobe Chat](https://github.com/lobehub/lobe-chat)** - An open-source, extensible (Function Calling), high-performance chatbot framework. It supports one-click free deployment of your private ChatGPT/LLM web application.
-- **[🅰️ Lobe Theme](https://github.com/lobehub/sd-webui-lobe-theme)** - The modern theme for stable diffusion webui, exquisite interface design, highly customizable UI, and efficiency boosting features.
-- **[🧸 Lobe Vidol](https://github.com/lobehub/lobe-vidol)** - Experience the magic of virtual idol creation with Lobe Vidol, enjoy the elegance of our Exquisite UI Design, dance along using MMD Dance Support, and engage in Smooth Conversations.
-
-### Design Resources
-
-- **[🍭 Lobe UI](https://ui.lobehub.com)** - An open-source UI component library for building AIGC web apps.
-- **[🥨 Lobe Icons](https://lobehub.com/icons)** - Popular AI / LLM Model Brand SVG Logo and Icon Collection.
-- **[📊 Lobe Charts](https://charts.lobehub.com)** - React modern charts components built on recharts
-- **[✍️ Streamdown](https://streamdown.lobehub.com)** - Headless streaming markdown engine for React
-
-### Development Resources
-
-- **[🎤 Lobe TTS](https://tts.lobehub.com)** - A high-quality & reliable TTS/STT library for Server and Browser
-- **[🌏 Lobe i18n](https://github.com/lobehub/lobe-cli-toolbox/blob/master/packages/lobe-i18n)** - Automation ai tool for the i18n (internationalization) translation process.
-
-[More Resources](https://lobehub.com/resources)
+- **[🍭 Lobe UI](https://github.com/lobehub/lobe-ui)** - React component library for AI apps
+- **[🥨 Lobe Icons](https://github.com/lobehub/lobe-icons)** - AI / LLM brand logos and icons
+- **[📊 Lobe Charts](https://github.com/lobehub/lobe-charts)** - React chart components
+- **[✒️ Lobe Editor](https://github.com/lobehub/lobe-editor)** - Lexical-based rich text editor for React, with Markdown, plugins and a chat composer
+- **[🎤 Lobe TTS](https://github.com/lobehub/lobe-tts)** - TTS / STT speech library
+- **[📐 Lobe Lint](https://github.com/lobehub/lobe-lint)** - ESLint, Prettier, Stylelint, Commitlint and more lint configs
+- **[😀 Fluent Emoji](https://github.com/lobehub/fluent-emoji)** - Fluent Emoji assets
+- **[📖 Docs Kit](https://github.com/lobehub/docs-kit)** - Reusable documentation toolkit and lobedocs CLI for LobeHub component libraries
+- **[🌊 Streamdown](https://github.com/lobehub/streamdown)** - Headless streaming markdown engine for React
 
 <div align="right">
 
