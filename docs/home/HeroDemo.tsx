@@ -23,7 +23,7 @@ export const HeroDemo = () => {
     <StreamPane
       latexGuard
       content={text}
-      height={300}
+      height={600}
       rehypePlugins={rehypePlugins}
       remarkPlugins={remarkPlugins}
       title={"heroSample.md"}

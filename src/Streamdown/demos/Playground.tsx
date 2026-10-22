@@ -10,6 +10,7 @@ import {
   StreamdownProfilerProvider,
 } from "@lobehub/streamdown/profiler";
 import { Flexbox } from "@lobehub/ui";
+import { Surface } from "@lobehub/ui/dashboard";
 import { StoryBook, useControls, useCreateStore } from "@lobehub/ui/storybook";
 import { useEffect, useMemo } from "react";
 import rehypeKatex from "rehype-katex";
@@ -137,28 +138,30 @@ export default () => {
   ]);
 
   return (
-    <StoryBook levaStore={store}>
-      <Flexbox gap={12} padding={4} width={"100%"}>
-        <StreamdownProfilerProvider profiler={profiler}>
-          <StreamPane
-            content={text}
-            extra={<ProfilerRate profiler={profiler} />}
-            granularity={granularity}
-            height={420}
-            latexGuard={latexGuard}
-            preprocess={preprocess ? preprocessLaTeX : undefined}
-            rehypePlugins={rehypePlugins}
-            remarkPlugins={remarkPlugins}
-            smoothing={smoothing}
-            title={samples[sampleKey].label}
-            onReplay={() => {
-              profiler.reset("playground");
-              restart();
-            }}
-          />
-        </StreamdownProfilerProvider>
-        <ProfilerPanel profiler={profiler} />
-      </Flexbox>
-    </StoryBook>
+    <Surface style={{ overflow: "hidden", width: "100%" }}>
+      <StoryBook levaStore={store}>
+        <Flexbox gap={12} padding={4} width={"100%"}>
+          <StreamdownProfilerProvider profiler={profiler}>
+            <StreamPane
+              content={text}
+              extra={<ProfilerRate profiler={profiler} />}
+              granularity={granularity}
+              height={420}
+              latexGuard={latexGuard}
+              preprocess={preprocess ? preprocessLaTeX : undefined}
+              rehypePlugins={rehypePlugins}
+              remarkPlugins={remarkPlugins}
+              smoothing={smoothing}
+              title={samples[sampleKey].label}
+              onReplay={() => {
+                profiler.reset("playground");
+                restart();
+              }}
+            />
+          </StreamdownProfilerProvider>
+          <ProfilerPanel profiler={profiler} />
+        </Flexbox>
+      </StoryBook>
+    </Surface>
   );
 };

@@ -1,59 +1,135 @@
 import { paragraphBatchCases } from "./paragraphBatches";
 
-export const heroSample = `## Streaming markdown, the smooth way
+export const heroSample = `# Streaming Markdown for Agents
 
-**Streamdown** turns raw LLM token streams into calm, readable pages:
+LLMs emit tokens, not documents. **Streamdown** turns that unfinished text into calm, readable pages while the answer is still arriving — without flashing raw \`**\` markers, half-open fences or broken math.
 
-1. Splits content into *blocks* and only re-renders the streaming tail
-2. Smooths bursty chunk arrival into a steady per-char reveal
-3. Fades each character in with CSS — no layout thrash
+## What lands on the page
+
+While the model is still thinking out loud, Streamdown:
+
+1. Splits the stream into top-level *blocks* and only re-renders the open tail
+2. Smooths bursty chunk arrival into a steady per-character reveal
+3. Fades each new character (or word) in with CSS \`animation-delay\`
+4. Completes unclosed emphasis, links and code so the reader never sees raw markers
+5. Holds an incomplete LaTeX formula on the last good frame when \`latexGuard\` is on
 
 \`\`\`tsx
 import { Streamdown } from '@lobehub/streamdown';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 
-<Streamdown content={tokens} smoothing="balanced" />
+export const Message = ({ content }: { content: string }) => (
+  <Streamdown
+    content={content}
+    latexGuard
+    rehypePlugins={[rehypeKatex]}
+    remarkPlugins={[remarkGfm, remarkMath]}
+    smoothing="balanced"
+  />
+);
 \`\`\`
 
-| Feature | Built in |
-| --- | --- |
-| Block caching | ✅ |
-| Unclosed-syntax repair | ✅ |
-| LaTeX guard | ✅ |
+## Rich content, as it arrives
 
-> Headless by design — bring your own components and typography.
+GFM tables, task lists and strikethrough come from \`remark-gfm\`. Math is yours to wire with \`remark-math\` + \`rehype-katex\`; Streamdown only keeps it from flashing.
+
+| Capability | How you get it | Streaming behavior |
+| --- | --- | --- |
+| Block caching | built in | Finished blocks freeze; only the tail re-lexes |
+| Smooth reveal | \`smoothing\` preset | \`realtime\` / \`balanced\` / \`silky\` |
+| Per-char fade | \`granularity\` | \`char\` (default) or \`word\` |
+| Unclosed syntax | remend on the open tail | Emphasis, links and inline code render early |
+| LaTeX guard | \`latexGuard\` | Holds the last good frame for incomplete formulas |
+| Code & diagrams | \`components.pre\` | Open fences render as code from the first line |
+
+Inline math like $E = mc^2$ and Euler's identity $e^{i\\pi} + 1 = 0$ stay readable mid-stream. Display math is guarded so a half-arrived \`$$\` never flashes raw TeX:
+
+$$
+\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}
+$$
+
+### A longer fence
+
+\`\`\`ts
+type Reveal = { char: string; delay: number };
+
+const reveal = (chars: string[], step = 18): Reveal[] =>
+  chars.map((char, i) => ({ char, delay: i * step }));
+
+// The smoother paces commits; CSS animation-delay paints the stagger.
+export const paint = (text: string) => reveal([...text]);
+\`\`\`
+
+\`\`\`mermaid
+flowchart LR
+  A[Token chunk] --> B[Smoother]
+  B --> C[Block lexer]
+  C --> D[Frozen prefix]
+  C --> E[Open tail + remend]
+  E --> F[CachedMarkdown]
+  F --> G[Fade in]
+\`\`\`
+
+> Headless by design — bring your own typography, highlighter and diagram renderer through react-markdown \`components\`.
+
+- [x] Partial markdown renders formatted
+- [x] Cheap commits on long answers
+- [ ] Your product's prose styles on top
 `;
-
 export const markdownSample = `# Markdown Kitchen Sink
 
-A quick tour through **bold**, *italic*, ~~strikethrough~~ and \`inline code\`.
+A longer tour through the kinds of blocks an LLM actually emits: **bold**, *italic*, ~~strikethrough~~, \`inline code\`, [links](https://lobehub.com) and footnotes that stay local to a block.
 
-## Lists
+## Lists that keep growing
 
 1. Ordered items stream block by block
 2. The tail block re-renders per reveal commit
+3. Nested content stays with its parent until a blank line freezes it
    - Nested bullets work too
-   - [x] Task list item
+   - [x] Task list item done
+   - [ ] Task list item still open
 
-## Code
+## Code that arrives mid-fence
+
+An unterminated fence renders as a code block from its first line. Highlighting is up to your \`components.pre\`:
 
 \`\`\`ts
 const reveal = (chars: string[]) =>
   chars.map((char, i) => ({ char, delay: i * 18 }));
+
+export const paint = (text: string) => reveal([...text]);
 \`\`\`
 
-## Quote & table
+\`\`\`mermaid
+sequenceDiagram
+  participant LLM
+  participant Streamdown
+  participant DOM
+  LLM->>Streamdown: chunk
+  Streamdown->>Streamdown: smooth + lex tail
+  Streamdown->>DOM: reveal frame
+\`\`\`
 
-> Streaming UIs should feel like typing, not like a slideshow.
+## Quote, table and math
 
-| Preset | Feel |
-| --- | --- |
-| realtime | snappy |
-| balanced | default |
-| silky | cinematic |
+> Streaming UIs should feel like typing, not like a slideshow. The smoother holds a small buffer so bursty chunks land as a steady cadence.
 
-Final paragraph to give the smoother a long tail of prose to pace out evenly across commits, demonstrating steady per-character reveal even when upstream chunks arrive in bursts.
+| Preset | Target buffer | Feel |
+| --- | --- | --- |
+| realtime | 40ms | snappy, lowest latency |
+| balanced | 120ms | default |
+| silky | 170ms | cinematic |
+
+Inline $a^2 + b^2 = c^2$ and a short display block:
+
+$$
+\\mathcal{F}\\{f\\}(\\xi) = \\int_{-\\infty}^{\\infty} f(x)\\,e^{-2\\pi i x \\xi}\\,dx
+$$
+
+Final paragraph to give the smoother a long tail of prose to pace out evenly across commits, demonstrating steady per-character reveal even when upstream chunks arrive in bursts of forty characters with heavy jitter. The queue still holds hundreds of characters, the smoother is still pacing a few dozen commits per second, and this sentence has to land one glyph at a time.
 `;
-
 export const latexSample = `# LaTeX Streaming
 
 Inline math like $E = mc^2$ streams safely, and display math is guarded so a

@@ -1,5 +1,6 @@
 import { Streamdown, type StreamdownProps } from "@lobehub/streamdown";
-import { Block, Button, Flexbox, Icon, Text, Typography } from "@lobehub/ui";
+import { Button, Flexbox, Icon, Typography } from "@lobehub/ui";
+import { Surface } from "@lobehub/ui/dashboard";
 import { RotateCcw } from "lucide-react";
 import { type ReactNode } from "react";
 
@@ -15,7 +16,7 @@ export interface StreamPaneProps extends StreamdownProps {
   title?: ReactNode;
 }
 
-/** A framed, auto-scrolling `<Streamdown />` output with a header and a replay button. */
+/** An auto-scrolling `<Streamdown />` output on a Lobe UI `Surface`, with a header and a replay button. */
 export const StreamPane = ({
   extra,
   height = 320,
@@ -26,18 +27,11 @@ export const StreamPane = ({
   const { onScroll, ref } = useStickToBottom();
 
   return (
-    <Block style={{ overflow: "hidden" }} variant={"outlined"} width={"100%"}>
-      <Flexbox
-        horizontal
-        align={"center"}
-        gap={8}
-        justify={"space-between"}
-        paddingBlock={8}
-        paddingInline={12}
-      >
-        <Text fontSize={12} type={"secondary"}>
-          {title}
-        </Text>
+    <Surface
+      padded={false}
+      style={{ width: "100%" }}
+      title={title}
+      extra={
         <Flexbox horizontal align={"center"} gap={8}>
           {extra}
           {onReplay && (
@@ -50,7 +44,8 @@ export const StreamPane = ({
             </Button>
           )}
         </Flexbox>
-      </Flexbox>
+      }
+    >
       <div
         ref={ref}
         style={{
@@ -65,6 +60,6 @@ export const StreamPane = ({
           <Streamdown components={markdownComponents} {...streamdownProps} />
         </Typography>
       </div>
-    </Block>
+    </Surface>
   );
 };

@@ -1,42 +1,48 @@
-import { Flexbox, Snippet, Text } from "@lobehub/ui";
-import { LandingHero, LandingSection } from "@lobehub/ui/awesome";
+import {
+  ClaudeCode,
+  Codex,
+  Cursor,
+  GithubCopilot,
+  Windsurf,
+} from "@lobehub/icons";
+import { Flexbox, Text } from "@lobehub/ui";
+import {
+  AgentSkillCard,
+  LandingHero,
+  LandingSection,
+} from "@lobehub/ui/awesome";
+import { GithubIcon } from "@lobehub/ui/icons";
 import { ArrowRight } from "lucide-react";
-import { useCallback } from "react";
 import { useNavigate } from "react-router";
 
 import Playground from "../../src/Streamdown/demos/Playground";
-import { ApiSection } from "./ApiSection";
 import { Features } from "./Features";
 import { HeroDemo } from "./HeroDemo";
 import { renderLink } from "./renderLink";
 
+const SITE_URL = "https://streamdown.lobehub.com";
 const REPO = "https://github.com/lobehub/streamdown";
 const NPM = "https://www.npmjs.com/package/@lobehub/streamdown";
-const INSTALL_COMMAND = "pnpm add @lobehub/streamdown";
 
-// Mirrors the original Vite site (f3ba7b3:site/src/App.tsx): Hero → Features → Playground → API.
+const AGENTS = [
+  { avatar: ClaudeCode.Avatar, title: "Claude Code" },
+  { avatar: Codex.Avatar, title: "Codex" },
+  { avatar: Cursor.Avatar, title: "Cursor" },
+  { avatar: GithubCopilot.Avatar, title: "GitHub Copilot" },
+  { avatar: Windsurf.Avatar, title: "Windsurf" },
+];
+
+// Standard landing hero (building-landing-home) with the original hero stream below it, then the
+// original Vite site's sections (f3ba7b3:site/src/App.tsx): Features → Playground → footer.
 export default function Home({ description }: { description: string }) {
   const navigate = useNavigate();
-  // In-page anchors (#playground, #api) scroll; everything else goes through the router.
-  const onNavigate = useCallback(
-    (href: string) => {
-      if (href.startsWith("#")) {
-        document
-          .getElementById(href.slice(1))
-          ?.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-      navigate(href);
-    },
-    [navigate],
-  );
 
   return (
     <>
-      <span hidden data-pagefind-meta={`description:${description}`} />
       <LandingHero
-        accent={"as it arrives"}
+        accent={"Streaming Markdown"}
         renderLink={renderLink}
+        title={<span data-pagefind-meta="title">Streamdown</span>}
         actions={[
           {
             href: "/guide/getting-started",
@@ -45,26 +51,42 @@ export default function Home({ description }: { description: string }) {
             label: "Get Started",
             primary: true,
           },
-          { href: "#playground", label: "Try the playground" },
+          { href: REPO, icon: GithubIcon, label: "GitHub" },
         ]}
-        badge={
-          <span>
-            <b>New</b> Block-level caching, 2× less main-thread time
-          </span>
+        aside={
+          <AgentSkillCard
+            agents={AGENTS}
+            agent={{
+              code: `Read ${SITE_URL}/skills.md and follow it to render streaming LLM markdown with @lobehub/streamdown.`,
+              description:
+                "Send this prompt to your agent to wire up Streamdown",
+            }}
+            footer={
+              <>
+                <a href={"/skills.md"} rel={"noreferrer"} target={"_blank"}>
+                  skills.md
+                </a>
+                <a href={"/llms.txt"} rel={"noreferrer"} target={"_blank"}>
+                  llms.txt
+                </a>
+              </>
+            }
+            human={{
+              code: "pnpm add @lobehub/streamdown",
+              description: "Install Streamdown into your React project",
+            }}
+          />
         }
         description={
-          "A headless streaming markdown engine for React. Per-character reveal, block-level caching, and a LaTeX guard that keeps half-typed math from breaking mid-stream. Ships zero styles."
+          <span data-pagefind-meta="description">{description}</span>
         }
-        title={
-          <span data-pagefind-meta="title:Streamdown">Render markdown</span>
-        }
-        onNavigate={onNavigate}
-      >
-        <Flexbox align={"center"} gap={32} width={"100%"}>
-          <Snippet language={"sh"}>{INSTALL_COMMAND}</Snippet>
-          <HeroDemo />
-        </Flexbox>
-      </LandingHero>
+        onNavigate={navigate}
+      />
+
+      {/* Outside LandingHero so body text is not centered by the hero's textAlign. */}
+      <div style={{ marginBlock: 8, textAlign: "left", width: "100%" }}>
+        <HeroDemo />
+      </div>
 
       <LandingSection id={"home-features"}>
         <Features />
@@ -84,21 +106,6 @@ export default function Home({ description }: { description: string }) {
             per-character stagger rides CSS <code>animation-delay</code>, not a
             re-render every frame.
           </Text>
-        </LandingSection>
-      </div>
-
-      <div id={"api"}>
-        <LandingSection
-          id={"home-api"}
-          title={"API"}
-          description={
-            <>
-              Props on the <code>&lt;Streamdown /&gt;</code> component, rendered
-              by Streamdown itself.
-            </>
-          }
-        >
-          <ApiSection />
         </LandingSection>
       </div>
 
