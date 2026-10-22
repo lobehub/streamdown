@@ -48,7 +48,7 @@ export default function Home({
         title={<span data-pagefind-meta="title">Streamdown</span>}
         actions={[
           {
-            href: getStartedPathname,
+            href: "/guide/getting-started",
             icon: ArrowRight,
             iconPlacement: "end",
             label: "Get Started",
