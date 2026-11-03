@@ -22,6 +22,7 @@
   },
   "main": "./es/index.mjs",
   "types": "./es/index.d.mts",
+  "sideEffects": false,
   "files": [
     "es"
   ],
