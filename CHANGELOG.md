@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.4.5](https://github.com/lobehub/streamdown/compare/v1.4.4...v1.4.5) (2026-11-03)
+
+
+### 🐛 Bug Fixes
+
+* Mark package side-effect free so unused exports tree-shake, closes [#7](https://github.com/lobehub/streamdown/issues/7) ([299e394](https://github.com/lobehub/streamdown/commit/299e394))
+
 ## [1.4.4](https://github.com/lobehub/streamdown/compare/v1.4.3...v1.4.4) (2026-10-22)
 
 
