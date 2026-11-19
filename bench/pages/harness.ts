@@ -76,25 +76,25 @@ Object.assign(window, {
   },
 });
 
+const SETTLE_QUIET_MS = 600;
+
 const waitForSettle = (preview: HTMLElement, since: number) =>
   new Promise<number>((resolve) => {
-    let lastText = '';
-    let stableSince = performance.now();
-    const timer = setInterval(() => {
-      const now = performance.now();
-      const text = normalize(preview.textContent ?? '');
-      const animating = document
-        .getAnimations()
-        .some((animation) => animation.playState === 'running');
-      if (text !== lastText || animating) {
-        lastText = text;
-        stableSince = now;
+    let lastMutation = since;
+    const observer = new MutationObserver(() => {
+      lastMutation = performance.now();
+    });
+    observer.observe(preview, { characterData: true, childList: true, subtree: true });
+    const check = () => {
+      const quiet = performance.now() - lastMutation;
+      if (quiet < SETTLE_QUIET_MS) {
+        setTimeout(check, SETTLE_QUIET_MS - quiet);
         return;
       }
-      if (now - stableSince < 400 || now - since < 400) return;
-      clearInterval(timer);
-      resolve(stableSince);
-    }, 20);
+      observer.disconnect();
+      resolve(lastMutation);
+    };
+    setTimeout(check, SETTLE_QUIET_MS);
   });
 
 export function mount(Renderer: (props: RendererProps) => ReactElement): void {
