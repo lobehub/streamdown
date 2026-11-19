@@ -8,6 +8,9 @@ dist
 # docs
 .react-router
 
+# bench
+bench/.cache
+
 # ci
 coverage
 .eslintcache
