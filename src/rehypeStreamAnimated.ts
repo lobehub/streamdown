@@ -63,6 +63,13 @@ const segmentWords = (value: string): string[] => {
   return segments;
 };
 
+// Chars born within one display frame are indistinguishable on screen, so
+// they share a span: concurrent fades (each a composited layer) stay bounded
+// by frames in flight instead of growing with stream throughput.
+export const STREAM_FRAME_MS = 1000 / 60;
+
+const frameOf = (birth: number) => Math.floor(birth / STREAM_FRAME_MS);
+
 const BLOCK_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th']);
 const SKIP_TAGS = new Set(['pre', 'code', 'svg']);
 
@@ -136,7 +143,9 @@ export const rehypeStreamAnimated = (options: StreamAnimatedOptions = {}) => {
 
     const hasFaded = (index: number): boolean => {
       const birthTs = resolvedRuntime?.births[index];
-      return birthTs !== undefined && now - birthTs >= fadeDuration;
+      return (
+        birthTs !== undefined && now - (frameOf(birthTs) + 1) * STREAM_FRAME_MS >= fadeDuration
+      );
     };
 
     const wrapTextValue = (value: string): Element => {
@@ -144,9 +153,20 @@ export const rehypeStreamAnimated = (options: StreamAnimatedOptions = {}) => {
       const items: StreamTailData['items'] = [];
       let tailStarted = false;
 
+      const mergeIntoFrame = (birth: number, segment: string): boolean => {
+        const last = items.at(-1);
+        const gap = typeof last === 'string' ? last : '';
+        const group = gap ? items.at(-2) : last;
+        if (!group || typeof group === 'string' || group.birth === null) return false;
+        if (frameOf(group.birth) !== frameOf(birth)) return false;
+        if (gap) items.pop();
+        group.value += gap + segment;
+        return true;
+      };
+
       const push = (segment: string, startIndex: number, charCount: number, animate: boolean) => {
+        ensureBirths(startIndex, charCount);
         if (animate) {
-          ensureBirths(startIndex, charCount);
           if (isSkipped(startIndex)) {
             tailStarted = true;
             items.push({ birth: null, key: startIndex, value: segment });
@@ -154,11 +174,9 @@ export const rehypeStreamAnimated = (options: StreamAnimatedOptions = {}) => {
           }
           if (!hasFaded(startIndex)) {
             tailStarted = true;
-            items.push({
-              birth: resolvedRuntime?.births[startIndex] ?? now,
-              key: startIndex,
-              value: segment,
-            });
+            const birth = resolvedRuntime?.births[startIndex] ?? now;
+            if (mergeIntoFrame(birth, segment)) return;
+            items.push({ birth, key: startIndex, value: segment });
             return;
           }
         }

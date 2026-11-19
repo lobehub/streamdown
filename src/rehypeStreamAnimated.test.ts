@@ -1,7 +1,11 @@
 import { type Element, type Root } from 'hast';
 import { describe, expect, it } from 'vitest';
 
-import { rehypeStreamAnimated, type StreamAnimatedRuntime } from './rehypeStreamAnimated';
+import {
+  rehypeStreamAnimated,
+  STREAM_FRAME_MS,
+  type StreamAnimatedRuntime,
+} from './rehypeStreamAnimated';
 import { readStreamTailData, STREAM_TAIL_TAG, type StreamTailData } from './StreamTail';
 
 const makeTree = (text: string): Root => ({
@@ -29,11 +33,16 @@ const spansOf = (tail: StreamTailData) => tail.items.filter((item) => typeof ite
 
 const makeRuntime = (births: number[]): StreamAnimatedRuntime => ({ births, skipped: [] });
 
+const spaced = (from: number, count: number) =>
+  Array.from({ length: count }, (_, index) => from + index * 20);
+
+const pastFrameStart = () => (Math.floor(performance.now() / STREAM_FRAME_MS) - 20) * STREAM_FRAME_MS;
+
 describe('rehypeStreamAnimated', () => {
   it('char granularity keys every in-flight char by its index', () => {
     const now = performance.now();
     const tree = makeTree('ab c');
-    rehypeStreamAnimated({ runtime: makeRuntime([now, now, now, now]) })(tree);
+    rehypeStreamAnimated({ runtime: makeRuntime(spaced(now, 4)) })(tree);
 
     const tail = tailOf(tree);
     expect(tail.text).toBe('');
@@ -46,7 +55,7 @@ describe('rehypeStreamAnimated', () => {
     const tree = makeTree('hello world');
     rehypeStreamAnimated({
       granularity: 'word',
-      runtime: makeRuntime(Array.from({ length: 11 }, () => now)),
+      runtime: makeRuntime(spaced(now, 11)),
     })(tree);
 
     const tail = tailOf(tree);
@@ -61,7 +70,7 @@ describe('rehypeStreamAnimated', () => {
     const tree = makeTree(text);
     rehypeStreamAnimated({
       granularity: 'word',
-      runtime: makeRuntime(Array.from({ length: 12 }, () => now)),
+      runtime: makeRuntime(spaced(now, 12)),
     })(tree);
 
     const tail = tailOf(tree);
@@ -71,7 +80,7 @@ describe('rehypeStreamAnimated', () => {
 
   it('collapses chars whose fade completed into plain text, keeping later keys', () => {
     const now = performance.now();
-    const runtime = makeRuntime([now, now, now + 20, now + 40]);
+    const runtime = makeRuntime(spaced(now, 4));
     const treeA = makeTree('abcd');
     rehypeStreamAnimated({ fadeDuration: 100, runtime })(treeA);
     expect(tailOf(treeA).text).toBe('');
@@ -86,6 +95,61 @@ describe('rehypeStreamAnimated', () => {
     expect(tail.text).toBe('ab');
     expect(spansOf(tail).map((span) => span.key)).toEqual([2, 3]);
     expect(flatten(tail)).toBe('abcd');
+  });
+
+  it('merges consecutive in-flight chars born in the same frame into one span', () => {
+    const frame = Math.ceil(performance.now() / STREAM_FRAME_MS) * STREAM_FRAME_MS;
+    const tree = makeTree('abcd');
+    rehypeStreamAnimated({ runtime: makeRuntime([frame, frame + 1, frame + 2, frame + 40]) })(tree);
+
+    const tail = tailOf(tree);
+    expect(spansOf(tail).map((span) => [span.key, span.value])).toEqual([
+      [0, 'abc'],
+      [3, 'd'],
+    ]);
+    expect(spansOf(tail)[0].birth).toBe(frame);
+  });
+
+  it('merges same-frame words together with the whitespace between them', () => {
+    const frame = Math.ceil(performance.now() / STREAM_FRAME_MS) * STREAM_FRAME_MS;
+    const tree = makeTree('hello world');
+    rehypeStreamAnimated({
+      granularity: 'word',
+      runtime: makeRuntime(Array.from({ length: 11 }, () => frame)),
+    })(tree);
+
+    const tail = tailOf(tree);
+    expect(spansOf(tail).map((span) => span.value)).toEqual(['hello world']);
+    expect(flatten(tail)).toBe('hello world');
+  });
+
+  it('keeps a frame group whole until its last char has faded', () => {
+    const frame = pastFrameStart();
+    const runtime = makeRuntime([frame, frame + STREAM_FRAME_MS - 1]);
+    rehypeStreamAnimated({ fadeDuration: 60_000, runtime })(makeTree('ab'));
+
+    const fadeDuration = performance.now() - frame - 1;
+    const tree = makeTree('ab');
+    rehypeStreamAnimated({ fadeDuration, runtime })(tree);
+
+    const tail = tailOf(tree);
+    expect(tail.text).toBe('');
+    expect(spansOf(tail).map((span) => [span.key, span.value])).toEqual([[0, 'ab']]);
+  });
+
+  it('chains word births across the whitespace between words', () => {
+    const runtime: StreamAnimatedRuntime = {
+      births: [],
+      pacing: { capMs: 1000, pace: 10 },
+      skipped: [],
+    };
+    rehypeStreamAnimated({ fadeDuration: 100, granularity: 'word', runtime })(
+      makeTree('hello world'),
+    );
+
+    expect(runtime.births).toHaveLength(11);
+    expect(runtime.births.every((birth) => Number.isFinite(birth))).toBe(true);
+    expect(runtime.births[6]).toBeGreaterThan(runtime.births[4]);
   });
 
   it('assigns births lazily per rendered char from the runtime pacing', () => {
@@ -140,7 +204,7 @@ describe('rehypeStreamAnimated', () => {
       ],
       type: 'root',
     };
-    rehypeStreamAnimated({ runtime: makeRuntime(Array.from({ length: 4 }, () => now)) })(tree);
+    rehypeStreamAnimated({ runtime: makeRuntime(spaced(now, 4)) })(tree);
 
     const tail = cell.children[0] as Element;
     expect(tail.tagName).toBe(STREAM_TAIL_TAG);

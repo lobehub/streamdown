@@ -1,8 +1,9 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { getNow } from './internal';
 import { createStreamTailNode, StreamTail } from './StreamTail';
+import { STREAM_FADE_DURATION } from './styles';
 
 vi.mock('./internal', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./internal')>();
@@ -39,6 +40,34 @@ describe('StreamTail', () => {
     const later = delayOf(remounted.container.querySelector('.stream-char')!);
     expect(later).toBeLessThanOrEqual(first);
     expect(remounted.container.textContent).toBe('abx');
+  });
+
+  it('folds faded spans back into plain text once their fade ends', () => {
+    vi.useFakeTimers();
+    try {
+      const now = 10_000;
+      vi.mocked(getNow).mockReturnValue(now);
+      const node = createStreamTailNode({
+        items: [
+          { birth: now, key: 2, value: 'c' },
+          { birth: now + 40, key: 3, value: 'd' },
+        ],
+        text: 'ab',
+      });
+      const { container } = render(<StreamTail node={node} />);
+      expect(container.querySelectorAll('.stream-char')).toHaveLength(2);
+
+      vi.mocked(getNow).mockReturnValue(now + 40 + STREAM_FADE_DURATION);
+      act(() => {
+        vi.advanceTimersByTime(40 + STREAM_FADE_DURATION);
+      });
+
+      expect(container.querySelectorAll('span')).toHaveLength(0);
+      expect(container.textContent).toBe('abcd');
+    } finally {
+      vi.mocked(getNow).mockReset();
+      vi.useRealTimers();
+    }
   });
 
   it('renders skipped chars as revealed spans without a delay', () => {

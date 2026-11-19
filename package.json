@@ -27,6 +27,7 @@
     "es"
   ],
   "scripts": {
+    "bench": "node bench/run.ts",
     "build": "tsdown",
     "build:site": "lobedocs build",
     "deploy:site": "pnpm build:site && npx wrangler pages deploy dist --project-name streamdown",
@@ -63,6 +64,7 @@
     "@lobehub/icons": "^6.4.0",
     "@lobehub/lint": "^2.1.5",
     "@lobehub/ui": "^6.5.1",
+    "@pierre/words": "^0.2.2",
     "@react-router/dev": "8.2.0",
     "@testing-library/react": "^16.3.2",
     "@types/node": "26.1.1",
@@ -77,6 +79,7 @@
     "jsdom": "^29.1.1",
     "lucide-react": "^1.60.0",
     "motion": "^14.5.0",
+    "playwright": "^1.65.1",
     "prettier": "^3.9.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -85,6 +88,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "semantic-release": "^25.0.6",
+    "streamdown": "^2.8.0",
     "tsdown": "^0.22.4",
     "tsrs": "0.18.0-ts7.1.0-dev.20260929",
     "tsx": "^4.23.15",
