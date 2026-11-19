@@ -88,6 +88,21 @@ describe('rehypeStreamAnimated', () => {
     expect(flatten(tail)).toBe('abcd');
   });
 
+  it('chains word births across the whitespace between words', () => {
+    const runtime: StreamAnimatedRuntime = {
+      births: [],
+      pacing: { capMs: 1000, pace: 10 },
+      skipped: [],
+    };
+    rehypeStreamAnimated({ fadeDuration: 100, granularity: 'word', runtime })(
+      makeTree('hello world'),
+    );
+
+    expect(runtime.births).toHaveLength(11);
+    expect(runtime.births.every((birth) => Number.isFinite(birth))).toBe(true);
+    expect(runtime.births[6]).toBeGreaterThan(runtime.births[4]);
+  });
+
   it('assigns births lazily per rendered char from the runtime pacing', () => {
     const runtime: StreamAnimatedRuntime = {
       births: [],

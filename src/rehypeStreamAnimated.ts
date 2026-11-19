@@ -145,8 +145,8 @@ export const rehypeStreamAnimated = (options: StreamAnimatedOptions = {}) => {
       let tailStarted = false;
 
       const push = (segment: string, startIndex: number, charCount: number, animate: boolean) => {
+        ensureBirths(startIndex, charCount);
         if (animate) {
-          ensureBirths(startIndex, charCount);
           if (isSkipped(startIndex)) {
             tailStarted = true;
             items.push({ birth: null, key: startIndex, value: segment });
