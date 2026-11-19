@@ -1,5 +1,5 @@
 import { type Element } from 'hast';
-import { type CSSProperties, memo, useRef } from 'react';
+import { type CSSProperties, memo, useEffect, useReducer, useRef } from 'react';
 
 import { getNow, isDeepEqual } from './internal';
 import { STREAM_FADE_DURATION } from './styles';
@@ -63,10 +63,27 @@ interface StreamTailProps {
 export const StreamTail = memo<StreamTailProps>(
   ({ node }) => {
     const delaysRef = useRef<Map<number, CSSProperties | null>>(new Map());
+    const [, refold] = useReducer((count: number) => count + 1, 0);
     const data = readStreamTailData(node);
+    const now = getNow();
+
+    let fadesEndAt = 0;
+    for (const item of data?.items ?? []) {
+      if (typeof item === 'string' || item.birth === null) continue;
+      fadesEndAt = Math.max(fadesEndAt, item.birth + STREAM_FADE_DURATION);
+    }
+    const pendingFadeMs = fadesEndAt > now ? fadesEndAt - now : 0;
+
+    // The last commit of a stream never re-renders the tail, so its spans
+    // would outlive their fades; one deferred render folds them into text.
+    useEffect(() => {
+      if (pendingFadeMs === 0) return;
+      const timer = setTimeout(refold, Math.ceil(pendingFadeMs));
+      return () => clearTimeout(timer);
+    }, [pendingFadeMs]);
+
     if (!data) return null;
 
-    const now = getNow();
     const styleOf = (item: StreamCharItem): CSSProperties | null => {
       if (item.birth === null) return null;
       const cached = delaysRef.current.get(item.key);
@@ -82,6 +99,10 @@ export const StreamTail = memo<StreamTailProps>(
         {data.text}
         {data.items.map((item) => {
           if (typeof item === 'string') return item;
+          if (item.birth !== null && now - item.birth >= STREAM_FADE_DURATION) {
+            delaysRef.current.delete(item.key);
+            return item.value;
+          }
           const style = styleOf(item);
           return (
             <span
