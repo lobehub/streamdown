@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.4.6](https://github.com/lobehub/streamdown/compare/v1.4.5...v1.4.6) (2026-11-19)
+
+
+### ⚡ Performance Improvements
+
+* Bound concurrent stream fades and fold faded tail spans, closes [#8](https://github.com/lobehub/streamdown/issues/8) ([e67f932](https://github.com/lobehub/streamdown/commit/e67f932))
+
 ## [1.4.5](https://github.com/lobehub/streamdown/compare/v1.4.4...v1.4.5) (2026-11-03)
 
 
