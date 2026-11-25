@@ -4,6 +4,7 @@ import { visit } from 'unist-util-visit';
 
 import { getNow } from './internal';
 import { createStreamTailNode, type StreamTailData } from './StreamTail';
+import { STREAM_INLINE_CLASS } from './styles';
 
 export interface StreamBirthPacing {
   capMs: number;
@@ -16,6 +17,12 @@ export interface StreamAnimatedRuntime {
    * `pacing` (or supplied up front by legacy callers).
    */
   births: number[];
+  /**
+   * Inline code fades as one box starting at its first char's birth. The
+   * delay is frozen at first render, keyed by that char's index, because a
+   * changed animation-delay on a running animation jumps it.
+   */
+  inlineFades?: Map<number, { birth: number; delay: number }>;
   pacing?: StreamBirthPacing;
   /**
    * Per char, indexed like `births`: `undefined` = not rendered yet,
@@ -73,6 +80,12 @@ const frameOf = (birth: number) => Math.floor(birth / STREAM_FRAME_MS);
 const BLOCK_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th']);
 const SKIP_TAGS = new Set(['pre', 'code', 'svg']);
 
+const classListOf = (node: Element): string[] => {
+  const className = node.properties.className;
+  if (Array.isArray(className)) return className.map(String);
+  return className ? [String(className)] : [];
+};
+
 function hasClass(node: Element, cls: string): boolean {
   const cn: unknown = node.properties?.className;
   if (Array.isArray(cn)) return cn.some((c) => String(c).includes(cls));
@@ -105,11 +118,7 @@ export const rehypeStreamAnimated = (options: StreamAnimatedOptions = {}) => {
     if (block) {
       for (const node of tree.children) {
         if (node.type !== 'element') continue;
-        const className = node.properties.className;
-        node.properties.className = [
-          ...(Array.isArray(className) ? className : className ? [String(className)] : []),
-          'stream-block',
-        ];
+        node.properties.className = [...classListOf(node), 'stream-block'];
       }
       return;
     }
@@ -200,13 +209,42 @@ export const rehypeStreamAnimated = (options: StreamAnimatedOptions = {}) => {
       return createStreamTailNode({ items, text });
     };
 
+    const inlineFadeDelay = (index: number): number | null => {
+      const birth = resolvedRuntime?.births[index] ?? now;
+      if (isSkipped(index) || now - birth >= fadeDuration) return null;
+      if (!resolvedRuntime) return birth - now;
+      const fades = (resolvedRuntime.inlineFades ??= new Map());
+      const frozen = fades.get(index);
+      if (frozen?.birth === birth) return frozen.delay;
+      const delay = birth - now;
+      fades.set(index, { birth, delay });
+      return delay;
+    };
+
+    const wrapInlineCode = (node: Element) => {
+      const startIndex = globalCharIndex;
+      wrapText(node);
+      if (globalCharIndex === startIndex) return;
+      const delay = inlineFadeDelay(startIndex);
+      if (delay === null) {
+        resolvedRuntime?.inlineFades?.delete(startIndex);
+        return;
+      }
+      node.properties.className = [...classListOf(node), STREAM_INLINE_CLASS];
+      const style = node.properties.style;
+      const fadeStyle = `animation-delay:${delay}ms`;
+      node.properties.style = style ? `${String(style)};${fadeStyle}` : fadeStyle;
+    };
+
     const wrapText = (node: Element) => {
       const newChildren: ElementContent[] = [];
       for (const child of node.children) {
         if (child.type === 'text') {
           newChildren.push(wrapTextValue(child.value));
         } else if (child.type === 'element') {
-          if (!shouldSkip(child)) {
+          if (child.tagName === 'code') {
+            wrapInlineCode(child);
+          } else if (!shouldSkip(child)) {
             wrapText(child);
           }
           newChildren.push(child);

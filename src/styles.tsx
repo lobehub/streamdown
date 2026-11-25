@@ -4,12 +4,15 @@ export const STREAM_FADE_DURATION = 180;
 
 export const STREAMDOWN_ANIMATED_CLASS = 'streamdown-animated';
 
+export const STREAM_INLINE_CLASS = 'stream-inline';
+
 const css = `
 @keyframes streamdown-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 .${STREAMDOWN_ANIMATED_CLASS} .stream-char,
+.${STREAMDOWN_ANIMATED_CLASS} .${STREAM_INLINE_CLASS},
 .${STREAMDOWN_ANIMATED_CLASS} .stream-block {
   opacity: 0;
   animation-name: streamdown-fade-in;

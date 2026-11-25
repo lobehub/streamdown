@@ -7,6 +7,7 @@ import {
   type StreamAnimatedRuntime,
 } from './rehypeStreamAnimated';
 import { readStreamTailData, STREAM_TAIL_TAG, type StreamTailData } from './StreamTail';
+import { STREAM_INLINE_CLASS } from './styles';
 
 const makeTree = (text: string): Root => ({
   children: [
@@ -219,5 +220,90 @@ describe('rehypeStreamAnimated', () => {
     const [first, second] = spansOf(tailOf(tree));
     expect(first.birth).toBe(100);
     expect(second.birth).toBe(200);
+  });
+it('fades inline code in order with the text around it', () => {
+    const now = performance.now();
+    const code: Element = {
+      children: [{ type: 'text', value: 'cd' }],
+      properties: {},
+      tagName: 'code',
+      type: 'element',
+    };
+    const tree: Root = {
+      children: [
+        {
+          children: [{ type: 'text', value: 'ab' }, code, { type: 'text', value: 'ef' }],
+          properties: {},
+          tagName: 'p',
+          type: 'element',
+        },
+      ],
+      type: 'root',
+    };
+    rehypeStreamAnimated({ runtime: makeRuntime(spaced(now, 6)) })(tree);
+
+    const paragraph = tree.children[0] as Element;
+    const codeTail = readStreamTailData(code.children[0] as Element)!;
+    const afterTail = readStreamTailData(paragraph.children[2] as Element)!;
+    expect(spansOf(codeTail).map((span) => span.key)).toEqual([2, 3]);
+    expect(spansOf(afterTail).map((span) => span.key)).toEqual([4, 5]);
+    expect(code.properties.className).toContain(STREAM_INLINE_CLASS);
+    expect(code.properties.style).toMatch(/animation-delay:/);
+  });
+
+  it('freezes the inline code fade delay across runs and drops it once faded', () => {
+    const now = performance.now();
+    const runtime = makeRuntime([now + 40, now + 60]);
+    const makeCodeTree = () => {
+      const code: Element = {
+        children: [{ type: 'text', value: 'ab' }],
+        properties: {},
+        tagName: 'code',
+        type: 'element',
+      };
+      const tree: Root = {
+        children: [{ children: [code], properties: {}, tagName: 'p', type: 'element' }],
+        type: 'root',
+      };
+      return { code, tree };
+    };
+
+    const first = makeCodeTree();
+    rehypeStreamAnimated({ fadeDuration: 100, runtime })(first.tree);
+    expect(first.code.properties.style).toMatch(/animation-delay:/);
+    const second = makeCodeTree();
+    rehypeStreamAnimated({ fadeDuration: 100, runtime })(second.tree);
+    expect(second.code.properties.style).toBe(first.code.properties.style);
+
+    runtime.births[0] = now - 500;
+    runtime.births[1] = now - 480;
+    const faded = makeCodeTree();
+    rehypeStreamAnimated({ fadeDuration: 100, runtime })(faded.tree);
+    expect(faded.code.properties.className ?? []).not.toContain(STREAM_INLINE_CLASS);
+    expect(faded.code.properties.style).toBeUndefined();
+  });
+
+  it('leaves code blocks inside pre untouched', () => {
+    const now = performance.now();
+    const code: Element = {
+      children: [{ type: 'text', value: 'x' }],
+      properties: {},
+      tagName: 'code',
+      type: 'element',
+    };
+    const tree: Root = {
+      children: [
+        {
+          children: [{ children: [code], properties: {}, tagName: 'pre', type: 'element' }],
+          properties: {},
+          tagName: 'li',
+          type: 'element',
+        },
+      ],
+      type: 'root',
+    };
+    rehypeStreamAnimated({ runtime: makeRuntime(spaced(now, 1)) })(tree);
+    expect(code.children).toEqual([{ type: 'text', value: 'x' }]);
+    expect(code.properties.className).toBeUndefined();
   });
 });
