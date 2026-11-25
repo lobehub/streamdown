@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.4.7](https://github.com/lobehub/streamdown/compare/v1.4.6...v1.4.7) (2026-11-25)
+
+
+### 🐛 Bug Fixes
+
+* Fade inline code in stream order with surrounding text ([290a521](https://github.com/lobehub/streamdown/commit/290a521))
+
 ## [1.4.6](https://github.com/lobehub/streamdown/compare/v1.4.5...v1.4.6) (2026-11-19)
 
 
