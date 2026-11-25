@@ -176,6 +176,12 @@ describe('escapeLatexPipes', () => {
     expect(escapeLatexPipes(content)).toBe(expected);
   });
 
+  test('keeps the column spec of an array intact', () => {
+    const content = '$$\\begin{array}{c|c}a | b & c \\\\ \\hline 1 & 2\\end{array}$$';
+    const expected = '$$\\begin{array}{c|c}a \\vert{} b & c \\\\ \\hline 1 & 2\\end{array}$$';
+    expect(escapeLatexPipes(content)).toBe(expected);
+  });
+
   test('escapes pipes in block LaTeX', () => {
     const content = 'Set notation $$\\{x | x > 0\\}$$';
     const expected = 'Set notation $$\\{x \\vert{} x > 0\\}$$';
