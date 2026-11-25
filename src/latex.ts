@@ -37,10 +37,21 @@ class PlaceholderManager {
 // Helper Functions
 // ============================================================================
 
+// Column specs like `\begin{array}{c|c}` need a literal `|`: KaTeX rejects `\vert` there.
+const COLUMN_SPEC_REGEX = /(\\begin\{(?:array|subarray|tabular)\}\s*\{)([^{}]*)\}/g;
+
 // Helper: replace unescaped pipes with \vert within a LaTeX math fragment
-const replaceUnescapedPipes = (formula: string): string =>
+const replaceUnescapedPipes = (formula: string): string => {
+  const specs: string[] = [];
+  const kept = formula.replaceAll(COLUMN_SPEC_REGEX, (_, head: string, spec: string) => {
+    specs.push(spec);
+    return `${head}<<COLSPEC_${specs.length - 1}>>}`;
+  });
   // Use \vert{} so the control sequence terminates before the next token
-  formula.replaceAll(/(?<!\\)\|/g, '\\vert{}');
+  return kept
+    .replaceAll(/(?<!\\)\|/g, '\\vert{}')
+    .replaceAll(/<<COLSPEC_(\d+)>>/g, (_, index: string) => specs[Number(index)]);
+};
 
 /**
  * Converts LaTeX bracket delimiters to dollar sign delimiters.
