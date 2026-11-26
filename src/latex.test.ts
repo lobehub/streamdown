@@ -341,6 +341,19 @@ describe('escapeCurrencyDollars', () => {
     );
   });
 
+  test('keeps digit-led formulas as math', () => {
+    expect(escapeCurrencyDollars('so $2n$ is even')).toBe('so $2n$ is even');
+    expect(escapeCurrencyDollars('then $3x+1$ grows')).toBe('then $3x+1$ grows');
+    expect(escapeCurrencyDollars('half is $0.5$ here')).toBe('half is $0.5$ here');
+    expect(escapeCurrencyDollars('step $10 + 7 = 17$ done')).toBe('step $10 + 7 = 17$ done');
+    expect(escapeCurrencyDollars('terms $1, 2, 4, 8$ double')).toBe('terms $1, 2, 4, 8$ double');
+  });
+
+  test('still escapes two prices that look like a span', () => {
+    expect(escapeCurrencyDollars('pay $5 and $10 later')).toBe('pay \\$5 and \\$10 later');
+    expect(escapeCurrencyDollars('from $20-$50 each')).toBe('from \\$20-\\$50 each');
+  });
+
   test('does not escape simple LaTeX number formulas', () => {
     // Single digit LaTeX formulas should not be escaped
     expect(escapeCurrencyDollars('$1$')).toBe('$1$');

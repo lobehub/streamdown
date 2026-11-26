@@ -37,6 +37,17 @@ class PlaceholderManager {
 // Helper Functions
 // ============================================================================
 
+// `$…$` whose body starts with a digit and ends on a non-space character
+const DIGIT_LED_INLINE_MATH_REGEX = /(?<![$\\])\$(\d(?:[^\n$]*[^\s$])?)\$(?!\$)/g;
+
+// A digit-led body is a formula when it holds a letter or TeX syntax, is a decimal,
+// puts an operator between two numbers, or lists numbers.
+const isDigitLedFormula = (inner: string): boolean =>
+  /[A-Za-z\\^_{}]/.test(inner) ||
+  /^\d+\.\d+$/.test(inner) ||
+  /\d\)*\s*[*+/:<=>×÷−-]\s*-?\(*\d/.test(inner) ||
+  /^-?\d+(?:\.\d+)?(?:\s*,\s*-?\d+(?:\.\d+)?)+$/.test(inner);
+
 // Helper: replace unescaped pipes with \vert within a LaTeX math fragment
 const replaceUnescapedPipes = (formula: string): string =>
   // Use \vert{} so the control sequence terminates before the next token
@@ -168,6 +179,13 @@ export function escapeCurrencyDollars(text: string): string {
     // 8. LaTeX parenthesis notation: \(...\)
     /(```[\s\S]*?```|`[^\n`]*`|\$\$[\s\S]*?\$\$|(?<!\\)\$(?!\$)[^$]*\\[^$]*(?<!\\)\$(?!\$)|\$\d+\$|\$-?\d+(?:,-?\d+)+\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g,
     (match) => manager.add(match),
+  );
+
+  // Protect inline math that starts with a digit but is clearly a formula, not a price:
+  // `$2n$`, `$3x+1$`, `$0.5$`, `$10 + 7 = 17$`, `$1, 2, 4$`. The span must end on a
+  // non-space right before its closing `$`, so `$5 and $10` stays two prices.
+  content = content.replaceAll(DIGIT_LED_INLINE_MATH_REGEX, (match, inner: string) =>
+    isDigitLedFormula(inner) ? manager.add(match) : match,
   );
 
   // Escape dollar signs that are clearly currency:
